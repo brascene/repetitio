@@ -25,8 +25,8 @@ struct GlassmorphicCard<Content: View>: View {
                     // Gradient overlay
                     LinearGradient(
                         gradient: Gradient(colors: [
-                            Color.white.opacity(0.15),
-                            Color.white.opacity(0.05)
+                            Color.blue.opacity(0.15),
+                            Color.purple.opacity(0.05)
                         ]),
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing

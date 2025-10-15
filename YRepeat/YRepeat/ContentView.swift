@@ -10,6 +10,7 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var playerController = YouTubePlayerController()
     @StateObject private var historyManager = HistoryManager()
+    @StateObject private var dailyRepeatManager = DailyRepeatManager()
 
     @State private var youtubeURL: String = ""
     @State private var selectedTab: Int = 0
@@ -33,6 +34,14 @@ struct ContentView: View {
             }
             .tag(0)
 
+            // Daily Repeat Tab
+            DailyRepeatView()
+                .environmentObject(dailyRepeatManager)
+            .tabItem {
+                Label("Daily", systemImage: "repeat.circle.fill")
+            }
+            .tag(1)
+
             // History Tab
             HistoryView(
                 historyManager: historyManager,
@@ -46,7 +55,7 @@ struct ContentView: View {
             .tabItem {
                 Label("History", systemImage: "clock.fill")
             }
-            .tag(1)
+            .tag(2)
         }
     }
 }
