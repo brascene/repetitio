@@ -38,7 +38,8 @@ struct CustomTabBar: View {
             )
         }
         .padding(.horizontal, 20)
-        .padding(.vertical, 12)
+        .padding(.top, 12)
+        .padding(.bottom, 8)
         .background(
             ZStack {
                 // Base blur effect
@@ -49,8 +50,8 @@ struct CustomTabBar: View {
                     .fill(
                         LinearGradient(
                             gradient: Gradient(colors: [
-                                Color.white.opacity(0.15),
-                                Color.white.opacity(0.05)
+                                Color.blue.opacity(0.15),
+                                Color.purple.opacity(0.05)
                             ]),
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -85,6 +86,7 @@ struct CustomTabBar: View {
                         )
                     )
             }
+            .clipShape(RoundedRectangle(cornerRadius: 25))
         )
         .shadow(color: Color.black.opacity(0.3), radius: 20, x: 0, y: 10)
         .padding(.horizontal, 16)
@@ -102,56 +104,68 @@ struct TabBarItem: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 4) {
+            VStack(spacing: 6) {
                 ZStack {
-                    // Selected background with liquid effect
-                    if isSelected {
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(
-                                LinearGradient(
-                                    gradient: Gradient(colors: [
-                                        Color.blue.opacity(0.8),
-                                        Color.purple.opacity(0.6)
-                                    ]),
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
+                    // Background for both selected and non-selected states
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(
+                            isSelected ?
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color.blue.opacity(0.8),
+                                    Color.purple.opacity(0.6)
+                                ]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ) :
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color.blue.opacity(0.3),
+                                    Color.purple.opacity(0.2)
+                                ]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
                             )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .fill(
-                                        RadialGradient(
-                                            gradient: Gradient(colors: [
-                                                Color.white.opacity(0.3),
-                                                Color.clear
-                                            ]),
-                                            center: .topLeading,
-                                            startRadius: 0,
-                                            endRadius: 30
-                                        )
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(
+                                    RadialGradient(
+                                        gradient: Gradient(colors: [
+                                            Color.white.opacity(isSelected ? 0.3 : 0.1),
+                                            Color.clear
+                                        ]),
+                                        center: .topLeading,
+                                        startRadius: 0,
+                                        endRadius: 20
                                     )
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                            )
-                            .shadow(color: Color.blue.opacity(0.4), radius: 8, x: 0, y: 4)
-                            .scaleEffect(1.1)
-                            .animation(.spring(response: 0.4, dampingFraction: 0.6), value: isSelected)
-                    }
+                                )
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.white.opacity(isSelected ? 0.2 : 0.1), lineWidth: 1)
+                        )
+                        .shadow(
+                            color: isSelected ? Color.blue.opacity(0.4) : Color.clear,
+                            radius: isSelected ? 6 : 0,
+                            x: 0,
+                            y: isSelected ? 3 : 0
+                        )
+                        .scaleEffect(isSelected ? 1.05 : 1.0)
+                        .animation(.spring(response: 0.4, dampingFraction: 0.6), value: isSelected)
                     
                     // Icon
                     Image(systemName: icon)
-                        .font(.system(size: 20, weight: .semibold))
+                        .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(isSelected ? .white : .white.opacity(0.7))
-                        .scaleEffect(isSelected ? 1.1 : 1.0)
+                        .scaleEffect(isSelected ? 1.05 : 1.0)
                         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
                 }
-                .frame(width: 50, height: 50)
+                .frame(width: 36, height: 36)
                 
                 // Title
                 Text(title)
-                    .font(.system(size: 11, weight: .medium))
+                    .font(.system(size: 10, weight: .medium))
                     .foregroundColor(isSelected ? .white : .white.opacity(0.7))
                     .scaleEffect(isSelected ? 1.05 : 1.0)
                     .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
