@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Lottie
 
 struct HistoryView: View {
     @ObservedObject var historyManager: HistoryManager
@@ -69,7 +70,7 @@ struct HistoryView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
                 .padding(.bottom, 16)
-
+                
                 // Content
                 if historyManager.items.isEmpty {
                     Spacer()

@@ -12,6 +12,8 @@ struct DailyRepeatView: View {
     @State private var showingAddItem = false
     @State private var showingTemplates = false
     @State private var selectedItem: DailyRepeatItem?
+    @State private var showingCelebration = false
+    @State private var completedGoalName = ""
     
     var body: some View {
         ZStack {
@@ -50,6 +52,14 @@ struct DailyRepeatView: View {
                 .onAppear {
                     print("EditDailyRepeatView appeared for: \(item.name)")
                 }
+        }
+        .overlay {
+            if showingCelebration {
+                CelebrationOverlay(
+                    isShowing: $showingCelebration,
+                    goalName: completedGoalName
+                )
+            }
         }
     }
     
@@ -164,7 +174,14 @@ struct DailyRepeatView: View {
                     DailyRepeatCard(
                         item: item,
                         onTap: {
+                            let wasCompleted = item.isCompleted
                             manager.incrementItem(item)
+                            
+                            // Check if goal was just completed
+                            if !wasCompleted && manager.items.first(where: { $0.id == item.id })?.isCompleted == true {
+                                completedGoalName = item.name
+                                showingCelebration = true
+                            }
                         },
                         onEdit: {
                             print("Edit tapped for item: \(item.name) with ID: \(item.id)")

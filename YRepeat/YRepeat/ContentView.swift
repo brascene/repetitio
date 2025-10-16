@@ -19,43 +19,41 @@ struct ContentView: View {
     @State private var repeatCount: String = "0"
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            // Player Tab
-            PlayerView(
-                playerController: playerController,
-                historyManager: historyManager,
-                youtubeURL: $youtubeURL,
-                startTime: $startTime,
-                endTime: $endTime,
-                repeatCount: $repeatCount
-            )
-            .tabItem {
-                Label("Player", systemImage: "play.rectangle.fill")
+        ZStack {
+            // Content Views
+            Group {
+                if selectedTab == 0 {
+                    PlayerView(
+                        playerController: playerController,
+                        historyManager: historyManager,
+                        youtubeURL: $youtubeURL,
+                        startTime: $startTime,
+                        endTime: $endTime,
+                        repeatCount: $repeatCount
+                    )
+                } else if selectedTab == 1 {
+                    DailyRepeatView()
+                        .environmentObject(dailyRepeatManager)
+                } else {
+                    HistoryView(
+                        historyManager: historyManager,
+                        playerController: playerController,
+                        selectedTab: $selectedTab,
+                        youtubeURL: $youtubeURL,
+                        startTime: $startTime,
+                        endTime: $endTime,
+                        repeatCount: $repeatCount
+                    )
+                }
             }
-            .tag(0)
-
-            // Daily Repeat Tab
-            DailyRepeatView()
-                .environmentObject(dailyRepeatManager)
-            .tabItem {
-                Label("Daily", systemImage: "repeat.circle.fill")
+            .animation(.easeInOut(duration: 0.3), value: selectedTab)
+            
+            VStack {
+                Spacer()
+                
+                // Custom Tab Bar
+                CustomTabBar(selectedTab: $selectedTab)
             }
-            .tag(1)
-
-            // History Tab
-            HistoryView(
-                historyManager: historyManager,
-                playerController: playerController,
-                selectedTab: $selectedTab,
-                youtubeURL: $youtubeURL,
-                startTime: $startTime,
-                endTime: $endTime,
-                repeatCount: $repeatCount
-            )
-            .tabItem {
-                Label("History", systemImage: "clock.fill")
-            }
-            .tag(2)
         }
     }
 }
