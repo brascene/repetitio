@@ -8,15 +8,19 @@
 import Foundation
 import Combine
 import UIKit
+internal import CoreData
 
 class DailyRepeatManager: ObservableObject {
     @Published var items: [DailyRepeatItem] = []
     @Published var todayDate: Date = Date()
     
-    private let storageKey = "daily_repeat_items"
+    private let persistenceController: PersistenceController
+    private let context: NSManagedObjectContext
     private var timer: Timer?
     
-    init() {
+    init(persistenceController: PersistenceController = PersistenceController.shared) {
+        self.persistenceController = persistenceController
+        self.context = persistenceController.container.viewContext
         loadItems()
         setupDailyReset()
         checkForNewDay()
@@ -25,59 +29,77 @@ class DailyRepeatManager: ObservableObject {
     // MARK: - CRUD Operations
     
     func addItem(name: String, targetValue: Int, incrementAmount: Int = 1, iconName: String = "circle.fill", color: String = "blue") {
-        let item = DailyRepeatItem(
-            name: name,
-            targetValue: targetValue,
-            incrementAmount: incrementAmount,
-            iconName: iconName,
-            color: color
-        )
-        items.append(item)
-        saveItems()
+        let entity = DailyRepeatItemEntity(context: context)
+        entity.id = UUID()
+        entity.name = name
+        entity.targetValue = Int32(targetValue)
+        entity.incrementAmount = Int32(incrementAmount)
+        entity.iconName = iconName
+        entity.color = color
+        entity.currentValue = 0
+        entity.createdAt = Date()
+        
+        try? context.save()
+        loadItems()
     }
     
     func addFromTemplate(_ template: DailyRepeatTemplate) {
-        let item = DailyRepeatItem(
-            name: template.name,
-            targetValue: template.targetValue,
-            incrementAmount: template.incrementAmount,
-            iconName: template.iconName,
-            color: template.color
-        )
-        items.append(item)
-        saveItems()
+        let entity = DailyRepeatItemEntity(context: context)
+        entity.id = UUID()
+        entity.name = template.name
+        entity.targetValue = Int32(template.targetValue)
+        entity.incrementAmount = Int32(template.incrementAmount)
+        entity.iconName = template.iconName
+        entity.color = template.color
+        entity.currentValue = 0
+        entity.createdAt = Date()
+        
+        try? context.save()
+        loadItems()
     }
     
     func updateItem(item: DailyRepeatItem, name: String, targetValue: Int, incrementAmount: Int, iconName: String, color: String) {
-        if let index = items.firstIndex(where: { $0.id == item.id }) {
-            items[index].name = name
-            items[index].targetValue = targetValue
-            items[index].incrementAmount = incrementAmount
-            items[index].iconName = iconName
-            items[index].color = color
+        if let entity = getEntity(for: item) {
+            entity.name = name
+            entity.targetValue = Int32(targetValue)
+            entity.incrementAmount = Int32(incrementAmount)
+            entity.iconName = iconName
+            entity.color = color
             // Preserve currentValue - don't reset progress!
-            saveItems()
+            try? context.save()
+            loadItems()
         }
     }
     
     func deleteItem(_ item: DailyRepeatItem) {
-        items.removeAll { $0.id == item.id }
-        saveItems()
+        if let entity = getEntity(for: item) {
+            context.delete(entity)
+            try? context.save()
+            loadItems()
+        }
     }
     
     func deleteItem(at offsets: IndexSet) {
         for index in offsets {
-            items.remove(at: index)
+            let item = items[index]
+            if let entity = getEntity(for: item) {
+                context.delete(entity)
+            }
         }
-        saveItems()
+        try? context.save()
+        loadItems()
     }
     
     // MARK: - Progress Management
     
     func incrementItem(_ item: DailyRepeatItem) {
-        if let index = items.firstIndex(where: { $0.id == item.id }) {
-            items[index].increment()
-            saveItems()
+        if let entity = getEntity(for: item) {
+            entity.currentValue += entity.incrementAmount
+            if entity.currentValue >= entity.targetValue {
+                entity.lastCompleted = Date()
+            }
+            try? context.save()
+            loadItems()
             
             // Haptic feedback
             let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
@@ -86,9 +108,10 @@ class DailyRepeatManager: ObservableObject {
     }
     
     func resetItem(_ item: DailyRepeatItem) {
-        if let index = items.firstIndex(where: { $0.id == item.id }) {
-            items[index].resetForNewDay()
-            saveItems()
+        if let entity = getEntity(for: item) {
+            entity.currentValue = 0
+            try? context.save()
+            loadItems()
         }
     }
     
@@ -106,20 +129,24 @@ class DailyRepeatManager: ObservableObject {
         
         if !calendar.isDate(todayDate, inSameDayAs: currentDate) {
             // New day - reset all items
-            for index in items.indices {
-                items[index].resetForNewDay()
-            }
-            todayDate = currentDate
-            saveItems()
+            resetAllForNewDay()
         }
     }
     
     func resetAllForNewDay() {
-        for index in items.indices {
-            items[index].resetForNewDay()
+        let fetchRequest: NSFetchRequest<DailyRepeatItemEntity> = DailyRepeatItemEntity.fetchRequest()
+        
+        do {
+            let entities = try context.fetch(fetchRequest)
+            for entity in entities {
+                entity.currentValue = 0
+            }
+            try? context.save()
+            todayDate = Date()
+            loadItems()
+        } catch {
+            print("Failed to reset items for new day: \(error)")
         }
-        todayDate = Date()
-        saveItems()
     }
     
     // MARK: - Statistics
@@ -146,23 +173,47 @@ class DailyRepeatManager: ObservableObject {
     // MARK: - Persistence
     
     private func loadItems() {
-        guard let data = UserDefaults.standard.data(forKey: storageKey) else {
-            return
-        }
+        let fetchRequest: NSFetchRequest<DailyRepeatItemEntity> = DailyRepeatItemEntity.fetchRequest()
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \DailyRepeatItemEntity.createdAt, ascending: true)]
         
         do {
-            items = try JSONDecoder().decode([DailyRepeatItem].self, from: data)
+            let entities = try context.fetch(fetchRequest)
+            items = entities.compactMap { entity in
+                guard let id = entity.id,
+                      let name = entity.name,
+                      let iconName = entity.iconName,
+                      let color = entity.color else {
+                    return nil
+                }
+                
+                return DailyRepeatItem(
+                    id: id,
+                    name: name,
+                    targetValue: Int(entity.targetValue),
+                    currentValue: Int(entity.currentValue),
+                    incrementAmount: Int(entity.incrementAmount),
+                    iconName: iconName,
+                    color: color,
+                    createdAt: entity.createdAt ?? Date(),
+                    lastCompleted: entity.lastCompleted
+                )
+            }
         } catch {
             print("Failed to load daily repeat items: \(error)")
+            items = []
         }
     }
     
-    private func saveItems() {
+    private func getEntity(for item: DailyRepeatItem) -> DailyRepeatItemEntity? {
+        let fetchRequest: NSFetchRequest<DailyRepeatItemEntity> = DailyRepeatItemEntity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "id == %@", item.id as CVarArg)
+        
         do {
-            let data = try JSONEncoder().encode(items)
-            UserDefaults.standard.set(data, forKey: storageKey)
+            let entities = try context.fetch(fetchRequest)
+            return entities.first
         } catch {
-            print("Failed to save daily repeat items: \(error)")
+            print("Failed to fetch entity: \(error)")
+            return nil
         }
     }
     
