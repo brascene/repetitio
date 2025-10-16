@@ -12,6 +12,7 @@ internal import CoreData
 
 class DailyRepeatManager: ObservableObject {
     @Published var items: [DailyRepeatItem] = []
+    @Published var taskHistory: [TaskHistoryItem] = []
     @Published var todayDate: Date = Date()
     
     private let persistenceController: PersistenceController
@@ -22,6 +23,7 @@ class DailyRepeatManager: ObservableObject {
         self.persistenceController = persistenceController
         self.context = persistenceController.container.viewContext
         loadItems()
+        loadTaskHistory()
         setupDailyReset()
         checkForNewDay()
     }
@@ -97,6 +99,8 @@ class DailyRepeatManager: ObservableObject {
             entity.currentValue += entity.incrementAmount
             if entity.currentValue >= entity.targetValue {
                 entity.lastCompleted = Date()
+                // Add to task history
+                addToTaskHistory(item: item)
             }
             try? context.save()
             loadItems()
@@ -146,6 +150,66 @@ class DailyRepeatManager: ObservableObject {
             loadItems()
         } catch {
             print("Failed to reset items for new day: \(error)")
+        }
+    }
+    
+    // MARK: - Task History Management
+    
+    private func addToTaskHistory(item: DailyRepeatItem) {
+        // Check if task already exists in history for today
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        
+        // Find existing task history item for today
+        if let existingIndex = taskHistory.firstIndex(where: { historyItem in
+            historyItem.name == item.name &&
+            calendar.isDate(historyItem.completedAt, inSameDayAs: today)
+        }) {
+            // Increment completion count
+            taskHistory[existingIndex].completionCount += 1
+            taskHistory[existingIndex].completedAt = Date()
+        } else {
+            // Add new task to history
+            let historyItem = TaskHistoryItem(
+                name: item.name,
+                targetValue: item.targetValue,
+                iconName: item.iconName,
+                color: item.color,
+                completedAt: Date()
+            )
+            taskHistory.insert(historyItem, at: 0) // Add to beginning
+        }
+        
+        // Save to UserDefaults (simple persistence for now)
+        saveTaskHistory()
+    }
+    
+    func restartTaskFromHistory(_ historyItem: TaskHistoryItem) {
+        // Create a new task based on the history item
+        addItem(
+            name: historyItem.name,
+            targetValue: historyItem.targetValue,
+            incrementAmount: 1, // Default increment
+            iconName: historyItem.iconName,
+            color: historyItem.color
+        )
+    }
+    
+    func clearTaskHistory() {
+        taskHistory.removeAll()
+        saveTaskHistory()
+    }
+    
+    private func loadTaskHistory() {
+        if let data = UserDefaults.standard.data(forKey: "task_history"),
+           let history = try? JSONDecoder().decode([TaskHistoryItem].self, from: data) {
+            taskHistory = history
+        }
+    }
+    
+    private func saveTaskHistory() {
+        if let data = try? JSONEncoder().encode(taskHistory) {
+            UserDefaults.standard.set(data, forKey: "task_history")
         }
     }
     

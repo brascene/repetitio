@@ -44,6 +44,7 @@ struct ContentView: View {
                         endTime: $endTime,
                         repeatCount: $repeatCount
                     )
+                    .environmentObject(dailyRepeatManager)
                 }
             }
             .animation(.easeInOut(duration: 0.3), value: selectedTab)
