@@ -18,13 +18,26 @@ class DailyRepeatManager: ObservableObject {
     private let persistenceController: PersistenceController
     private let context: NSManagedObjectContext
     private var timer: Timer?
+    private var foregroundObserver: NSObjectProtocol?
+    private var activeObserver: NSObjectProtocol?
+    private let lastResetDateKey = "lastDailyResetDate"
     
     init(persistenceController: PersistenceController = PersistenceController.shared) {
         self.persistenceController = persistenceController
         self.context = persistenceController.container.viewContext
+        
+        // Load last reset date from UserDefaults or use current date
+        if let savedDate = UserDefaults.standard.object(forKey: lastResetDateKey) as? Date {
+            todayDate = savedDate
+        } else {
+            todayDate = Date()
+            saveLastResetDate()
+        }
+        
         loadItems()
         loadTaskHistory()
         setupDailyReset()
+        setupAppLifecycleObserver()
         checkForNewDay()
     }
     
@@ -111,6 +124,19 @@ class DailyRepeatManager: ObservableObject {
         }
     }
     
+    func decrementItem(_ item: DailyRepeatItem) {
+        if let entity = getEntity(for: item) {
+            // Don't allow negative values
+            entity.currentValue = max(0, entity.currentValue - entity.incrementAmount)
+            try? context.save()
+            loadItems()
+            
+            // Haptic feedback
+            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+            impactFeedback.impactOccurred()
+        }
+    }
+    
     func resetItem(_ item: DailyRepeatItem) {
         if let entity = getEntity(for: item) {
             entity.currentValue = 0
@@ -119,18 +145,60 @@ class DailyRepeatManager: ObservableObject {
         }
     }
     
+    func resetAllProgress() {
+        let fetchRequest: NSFetchRequest<DailyRepeatItemEntity> = DailyRepeatItemEntity.fetchRequest()
+        
+        do {
+            let entities = try context.fetch(fetchRequest)
+            for entity in entities {
+                entity.currentValue = 0
+            }
+            try context.save()
+            loadItems()
+            
+            // Haptic feedback
+            let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
+            impactFeedback.impactOccurred()
+        } catch {
+            print("Failed to reset all progress: \(error)")
+        }
+    }
+    
     // MARK: - Daily Management
     
     private func setupDailyReset() {
+        // Ensure timer runs on main run loop so it continues when app is active
         timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
+            self?.checkForNewDay()
+        }
+        RunLoop.main.add(timer!, forMode: .common)
+    }
+    
+    private func setupAppLifecycleObserver() {
+        // Listen for app becoming active (foreground)
+        foregroundObserver = NotificationCenter.default.addObserver(
+            forName: UIApplication.willEnterForegroundNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.checkForNewDay()
+        }
+        
+        // Also listen for app becoming active
+        activeObserver = NotificationCenter.default.addObserver(
+            forName: UIApplication.didBecomeActiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
             self?.checkForNewDay()
         }
     }
     
-    private func checkForNewDay() {
+    func checkForNewDay() {
         let calendar = Calendar.current
         let currentDate = Date()
         
+        // Compare the day components, not just the date objects
         if !calendar.isDate(todayDate, inSameDayAs: currentDate) {
             // New day - reset all items
             resetAllForNewDay()
@@ -145,12 +213,18 @@ class DailyRepeatManager: ObservableObject {
             for entity in entities {
                 entity.currentValue = 0
             }
-            try? context.save()
+            try context.save()
             todayDate = Date()
+            saveLastResetDate() // Persist the reset date
             loadItems()
+            print("✅ Daily reset completed - all items reset to 0")
         } catch {
-            print("Failed to reset items for new day: \(error)")
+            print("❌ Failed to reset items for new day: \(error)")
         }
+    }
+    
+    private func saveLastResetDate() {
+        UserDefaults.standard.set(todayDate, forKey: lastResetDateKey)
     }
     
     // MARK: - Task History Management
@@ -283,5 +357,11 @@ class DailyRepeatManager: ObservableObject {
     
     deinit {
         timer?.invalidate()
+        if let observer = foregroundObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+        if let observer = activeObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
     }
 }

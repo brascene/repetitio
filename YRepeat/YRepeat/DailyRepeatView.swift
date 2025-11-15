@@ -14,6 +14,7 @@ struct DailyRepeatView: View {
     @State private var selectedItem: DailyRepeatItem?
     @State private var showingCelebration = false
     @State private var completedGoalName = ""
+    @State private var showingResetConfirmation = false
     
     var body: some View {
         ZStack {
@@ -61,6 +62,20 @@ struct DailyRepeatView: View {
                 )
             }
         }
+        .onAppear {
+            // Check for new day when view appears (additional safeguard)
+            manager.checkForNewDay()
+        }
+        .alert("Reset All Progress", isPresented: $showingResetConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Reset", role: .destructive) {
+                withAnimation {
+                    manager.resetAllProgress()
+                }
+            }
+        } message: {
+            Text("Are you sure you want to reset all daily repeat progress to zero? This action cannot be undone.")
+        }
     }
     
     // MARK: - Header View
@@ -101,6 +116,16 @@ struct DailyRepeatView: View {
                         showingTemplates = true
                     } label: {
                         Label("Quick Templates", systemImage: "square.grid.2x2")
+                    }
+                    
+                    if !manager.items.isEmpty {
+                        Divider()
+                        
+                        Button(role: .destructive) {
+                            showingResetConfirmation = true
+                        } label: {
+                            Label("Reset All Progress", systemImage: "arrow.counterclockwise")
+                        }
                     }
                 } label: {
                     Image(systemName: "plus.circle.fill")
@@ -183,6 +208,9 @@ struct DailyRepeatView: View {
                                 showingCelebration = true
                             }
                         },
+                        onDecrement: {
+                            manager.decrementItem(item)
+                        },
                         onEdit: {
                             print("Edit tapped for item: \(item.name) with ID: \(item.id)")
                             selectedItem = item
@@ -252,6 +280,7 @@ struct DailyRepeatView: View {
 struct DailyRepeatCard: View {
     let item: DailyRepeatItem
     let onTap: () -> Void
+    let onDecrement: () -> Void
     let onEdit: () -> Void
     let onDelete: () -> Void
     
@@ -306,28 +335,86 @@ struct DailyRepeatCard: View {
                         .scaleEffect(y: 1.5)
                 }
                 
-                // Tap Indicator
-                VStack(spacing: 4) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 24))
-                        .foregroundColor(.white.opacity(0.6))
+                // Control Buttons - Vertical Stack for better alignment
+                VStack(spacing: 8) {
+                    // Increment Button (Primary Action)
+                    Button(action: onTap) {
+                        VStack(spacing: 4) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 22))
+                            Text("+\(item.incrementAmount)")
+                                .font(.system(size: 11, weight: .semibold))
+                        }
+                        .foregroundColor(.white)
+                        .frame(width: 56, height: 56)
+                        .background(
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [
+                                            colorFromString(item.color),
+                                            colorFromString(item.color).opacity(0.8)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                        )
+                        .overlay(
+                            Circle()
+                                .stroke(Color.white.opacity(0.3), lineWidth: 1.5)
+                        )
+                        .shadow(color: colorFromString(item.color).opacity(0.4), radius: 8, x: 0, y: 4)
+                    }
+                    .buttonStyle(ControlButtonStyle())
                     
-                    Text("+\(item.incrementAmount)")
-                        .font(.caption2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white.opacity(0.7))
-                    
-                    Text("TAP")
-                        .font(.caption2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white.opacity(0.5))
+                    // Decrement Button (Secondary Action)
+                    Button(action: onDecrement) {
+                        VStack(spacing: 4) {
+                            Image(systemName: "minus.circle.fill")
+                                .font(.system(size: 22))
+                            Text("-\(item.incrementAmount)")
+                                .font(.system(size: 11, weight: .semibold))
+                        }
+                        .foregroundColor(item.currentValue > 0 ? .white : .white.opacity(0.4))
+                        .frame(width: 56, height: 56)
+                        .background(
+                            Circle()
+                                .fill(
+                                    item.currentValue > 0 ?
+                                    LinearGradient(
+                                        colors: [
+                                            Color.red.opacity(0.7),
+                                            Color.red.opacity(0.5)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ) :
+                                    LinearGradient(
+                                        colors: [
+                                            Color.gray.opacity(0.3),
+                                            Color.gray.opacity(0.2)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                        )
+                        .overlay(
+                            Circle()
+                                .stroke(Color.white.opacity(item.currentValue > 0 ? 0.3 : 0.1), lineWidth: 1.5)
+                        )
+                        .shadow(
+                            color: item.currentValue > 0 ? Color.red.opacity(0.3) : Color.clear,
+                            radius: 6, x: 0, y: 3
+                        )
+                    }
+                    .buttonStyle(ControlButtonStyle())
+                    .disabled(item.currentValue == 0)
                 }
             }
         }
         .scaleEffect(isPressed ? 0.98 : 1.0)
-        .onTapGesture {
-            onTap()
-        }
         .onLongPressGesture(minimumDuration: 0.8, maximumDistance: 15, pressing: { pressing in
             withAnimation(.easeInOut(duration: 0.1)) {
                 isPressed = pressing
@@ -367,6 +454,17 @@ struct DailyRepeatCard: View {
         case "indigo": return .indigo
         default: return .blue
         }
+    }
+}
+
+// MARK: - Control Button Style
+
+struct ControlButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.92 : 1.0)
+            .brightness(configuration.isPressed ? -0.15 : 0)
+            .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
     }
 }
 

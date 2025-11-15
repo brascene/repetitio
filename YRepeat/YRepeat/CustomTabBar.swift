@@ -6,89 +6,60 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct CustomTabBar: View {
     @Binding var selectedTab: Int
     
     var body: some View {
-        HStack(spacing: 0) {
-            TabBarItem(
-                icon: "play.rectangle.fill",
-                title: "Player",
-                isSelected: selectedTab == 0,
-                action: { selectedTab = 0 }
-            )
+        GeometryReader { geometry in
+            let containerWidth = geometry.size.width - 32 // Account for padding
+            let tabCount: CGFloat = 3
+            let tabWidth = containerWidth / tabCount
             
-            Spacer(minLength: 20)
-            
-            TabBarItem(
-                icon: "repeat.circle.fill",
-                title: "Daily",
-                isSelected: selectedTab == 1,
-                action: { selectedTab = 1 }
-            )
-            
-            Spacer(minLength: 20)
-            
-            TabBarItem(
-                icon: "clock.fill",
-                title: "History",
-                isSelected: selectedTab == 2,
-                action: { selectedTab = 2 }
-            )
-        }
-        .padding(.horizontal, 20)
-        .padding(.top, 12)
-        .padding(.bottom, 8)
-        .background(
-            ZStack {
-                // Base blur effect
-                VisualEffectBlur(blurStyle: .systemUltraThinMaterialDark)
+            ZStack(alignment: .leading) {
+                // Native iOS 26 Liquid Glass Container Background
+                RoundedRectangle(cornerRadius: 30)
+                    .fill(Color.clear)
+                    .background(LiquidGlassContainerBackground(spacing: 0))
+                    .shadow(color: Color.black.opacity(0.2), radius: 20, x: 0, y: 10)
                 
-                // Glassmorphic overlay
-                RoundedRectangle(cornerRadius: 25)
-                    .fill(
-                        LinearGradient(
-                            gradient: Gradient(colors: [
-                                Color.blue.opacity(0.15),
-                                Color.purple.opacity(0.05)
-                            ]),
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 25)
-                            .stroke(
-                                LinearGradient(
-                                    gradient: Gradient(colors: [
-                                        Color.white.opacity(0.3),
-                                        Color.white.opacity(0.1)
-                                    ]),
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 1
-                            )
-                    )
+                // Floating capsule indicator (slides under selected tab)
+                Capsule()
+                    .fill(Color.white.opacity(0.25))
+                    .frame(width: tabWidth - 24, height: 32)
+                    .offset(x: CGFloat(selectedTab) * tabWidth + (tabWidth / 2) - ((tabWidth - 24) / 2), y: 0)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: selectedTab)
                 
-                // Liquid glass effect
-                RoundedRectangle(cornerRadius: 25)
-                    .fill(
-                        RadialGradient(
-                            gradient: Gradient(colors: [
-                                Color.white.opacity(0.1),
-                                Color.clear
-                            ]),
-                            center: .topLeading,
-                            startRadius: 0,
-                            endRadius: 100
-                        )
+                // Tab items
+                HStack(spacing: 0) {
+                    TabBarItem(
+                        icon: "play.rectangle.fill",
+                        title: "Player",
+                        isSelected: selectedTab == 0,
+                        action: { selectedTab = 0 }
                     )
+                    .frame(width: tabWidth)
+                    
+                    TabBarItem(
+                        icon: "repeat.circle.fill",
+                        title: "Daily",
+                        isSelected: selectedTab == 1,
+                        action: { selectedTab = 1 }
+                    )
+                    .frame(width: tabWidth)
+                    
+                    TabBarItem(
+                        icon: "clock.fill",
+                        title: "History",
+                        isSelected: selectedTab == 2,
+                        action: { selectedTab = 2 }
+                    )
+                    .frame(width: tabWidth)
+                }
             }
-            .clipShape(RoundedRectangle(cornerRadius: 25))
-        )
-        .shadow(color: Color.black.opacity(0.3), radius: 20, x: 0, y: 10)
+        }
+        .frame(height: 70)
         .padding(.horizontal, 16)
         .padding(.bottom, 8)
     }
@@ -100,93 +71,143 @@ struct TabBarItem: View {
     let isSelected: Bool
     let action: () -> Void
     
-    @State private var isPressed = false
-    
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 6) {
-                ZStack {
-                    // Background for both selected and non-selected states
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(
-                            isSelected ?
-                            LinearGradient(
-                                gradient: Gradient(colors: [
-                                    Color.blue.opacity(0.8),
-                                    Color.purple.opacity(0.6)
-                                ]),
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ) :
-                            LinearGradient(
-                                gradient: Gradient(colors: [
-                                    Color.blue.opacity(0.3),
-                                    Color.purple.opacity(0.2)
-                                ]),
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(
-                                    RadialGradient(
-                                        gradient: Gradient(colors: [
-                                            Color.white.opacity(isSelected ? 0.3 : 0.1),
-                                            Color.clear
-                                        ]),
-                                        center: .topLeading,
-                                        startRadius: 0,
-                                        endRadius: 20
-                                    )
-                                )
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.white.opacity(isSelected ? 0.2 : 0.1), lineWidth: 1)
-                        )
-                        .shadow(
-                            color: isSelected ? Color.blue.opacity(0.4) : Color.clear,
-                            radius: isSelected ? 6 : 0,
-                            x: 0,
-                            y: isSelected ? 3 : 0
-                        )
-                        .scaleEffect(isSelected ? 1.05 : 1.0)
-                        .animation(.spring(response: 0.4, dampingFraction: 0.6), value: isSelected)
-                    
-                    // Icon
-                    Image(systemName: icon)
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(isSelected ? .white : .white.opacity(0.7))
-                        .scaleEffect(isSelected ? 1.05 : 1.0)
-                        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
-                }
-                .frame(width: 36, height: 36)
-                
-                // Title
-                Text(title)
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundColor(isSelected ? .white : .white.opacity(0.7))
-                    .scaleEffect(isSelected ? 1.05 : 1.0)
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 20, weight: isSelected ? .semibold : .regular))
+                    .symbolVariant(isSelected ? .fill : .none)
+                    .foregroundColor(isSelected ? .white : .white.opacity(0.6))
+                    .scaleEffect(isSelected ? 1.1 : 1.0)
                     .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
+                
+                Text(title)
+                    .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
+                    .foregroundColor(isSelected ? .white : .white.opacity(0.6))
             }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
         }
-        .buttonStyle(CustomTabBarButtonStyle(isPressed: $isPressed))
+        .buttonStyle(PlainButtonStyle())
     }
 }
 
-struct CustomTabBarButtonStyle: ButtonStyle {
-    @Binding var isPressed: Bool
+// MARK: - Liquid Glass Views
+
+struct LiquidGlassContainerBackground: UIViewRepresentable {
+    var spacing: CGFloat
     
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
-            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
-            .onChange(of: configuration.isPressed) { pressed in
-                isPressed = pressed
+    func makeUIView(context: Context) -> UIVisualEffectView {
+        let glassView = UIVisualEffectView()
+        
+        if #available(iOS 26.0, *) {
+            let effect = UIGlassContainerEffect()
+            effect.spacing = spacing
+            glassView.effect = effect
+        } else {
+            // Fallback for older iOS versions
+            glassView.effect = UIBlurEffect(style: .systemUltraThinMaterialDark)
+        }
+        
+        return glassView
+    }
+    
+    func updateUIView(_ uiView: UIVisualEffectView, context: Context) {
+        if #available(iOS 26.0, *) {
+            if let effect = uiView.effect as? UIGlassContainerEffect {
+                effect.spacing = spacing
+            } else {
+                let effect = UIGlassContainerEffect()
+                effect.spacing = spacing
+                uiView.effect = effect
             }
+        }
     }
 }
+
+struct LiquidGlassView<Content: View>: UIViewRepresentable {
+    var style: LiquidGlassEffectStyle = .regular
+    var interactive: Bool = false
+    var tintColor: UIColor?
+    let content: Content
+    
+    init(style: LiquidGlassEffectStyle = .regular, interactive: Bool = false, tintColor: UIColor? = nil, @ViewBuilder content: () -> Content) {
+        self.style = style
+        self.interactive = interactive
+        self.tintColor = tintColor
+        self.content = content()
+    }
+    
+    func makeUIView(context: Context) -> UIView {
+        let containerView = UIView()
+        containerView.backgroundColor = .clear
+        
+        if #available(iOS 26.0, *) {
+            let glassView = UIVisualEffectView()
+            
+            switch style {
+            case .regular:
+                let effect = UIGlassEffect(style: .regular)
+                effect.isInteractive = interactive
+                effect.tintColor = tintColor
+                glassView.effect = effect
+            case .clear:
+                let effect = UIGlassEffect(style: .clear)
+                effect.isInteractive = interactive
+                effect.tintColor = tintColor
+                glassView.effect = effect
+            case .none:
+                break
+            }
+            
+            glassView.translatesAutoresizingMaskIntoConstraints = false
+            containerView.addSubview(glassView)
+            
+            NSLayoutConstraint.activate([
+                glassView.topAnchor.constraint(equalTo: containerView.topAnchor),
+                glassView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+                glassView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+                glassView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
+            ])
+        }
+        
+        return containerView
+    }
+    
+    func updateUIView(_ uiView: UIView, context: Context) {
+        if #available(iOS 26.0, *) {
+            if let glassView = uiView.subviews.first as? UIVisualEffectView {
+                switch style {
+                case .regular:
+                    let effect = UIGlassEffect(style: .regular)
+                    effect.isInteractive = interactive
+                    effect.tintColor = tintColor
+                    UIView.animate(withDuration: 0.3) {
+                        glassView.effect = effect
+                    }
+                case .clear:
+                    let effect = UIGlassEffect(style: .clear)
+                    effect.isInteractive = interactive
+                    effect.tintColor = tintColor
+                    UIView.animate(withDuration: 0.3) {
+                        glassView.effect = effect
+                    }
+                case .none:
+                    UIView.animate(withDuration: 0.3) {
+                        glassView.effect = nil
+                    }
+                }
+            }
+        }
+    }
+}
+
+enum LiquidGlassEffectStyle {
+    case regular
+    case clear
+    case none
+}
+
 
 #Preview {
     ZStack {
