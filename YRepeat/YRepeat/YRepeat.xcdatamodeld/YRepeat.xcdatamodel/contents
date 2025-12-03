@@ -21,4 +21,17 @@
         <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="lastCompleted" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
+    <entity name="CalendarEventEntity" representedClassName="CalendarEventEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="date" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="todos" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CalendarTodoEntity" inverseName="event" inverseEntity="CalendarTodoEntity"/>
+    </entity>
+    <entity name="CalendarTodoEntity" representedClassName="CalendarTodoEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="title" optional="NO" attributeType="String"/>
+        <attribute name="isCompleted" optional="NO" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="event" optional="NO" maxCount="1" deletionRule="Nullify" destinationEntity="CalendarEventEntity" inverseName="todos" inverseEntity="CalendarEventEntity"/>
+    </entity>
 </model>

@@ -14,7 +14,7 @@ struct CustomTabBar: View {
     var body: some View {
         GeometryReader { geometry in
             let containerWidth = geometry.size.width - 32 // Account for padding
-            let tabCount: CGFloat = 3
+            let tabCount: CGFloat = 4
             let tabWidth = containerWidth / tabCount
             
             ZStack(alignment: .leading) {
@@ -54,6 +54,14 @@ struct CustomTabBar: View {
                         title: "History",
                         isSelected: selectedTab == 2,
                         action: { selectedTab = 2 }
+                    )
+                    .frame(width: tabWidth)
+                    
+                    TabBarItem(
+                        icon: "calendar",
+                        title: "Calendar",
+                        isSelected: selectedTab == 3,
+                        action: { selectedTab = 3 }
                     )
                     .frame(width: tabWidth)
                 }

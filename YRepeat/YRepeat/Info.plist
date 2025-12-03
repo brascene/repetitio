@@ -29,5 +29,7 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>We need permission to send you medication reminders</string>
 </dict>
 </plist>

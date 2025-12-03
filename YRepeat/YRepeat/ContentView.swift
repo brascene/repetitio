@@ -11,12 +11,14 @@ enum Tab: Int, Hashable {
     case player = 0
     case daily = 1
     case history = 2
+    case calendar = 3
 }
 
 struct ContentView: View {
     @StateObject private var playerController = YouTubePlayerController()
     @StateObject private var historyManager = HistoryManager()
     @StateObject private var dailyRepeatManager = DailyRepeatManager()
+    @StateObject private var calendarManager = CalendarManager()
 
     @State private var youtubeURL: String = ""
     @SceneStorage("selectedTab") private var selectedTab: Tab = .player
@@ -57,13 +59,20 @@ struct ContentView: View {
                     youtubeURL: $youtubeURL,
                     startTime: $startTime,
                     endTime: $endTime,
-                    repeatCount: $repeatCount
+                    repeatCount: $repeatCount   
                 )
                 .environmentObject(dailyRepeatManager)
                 .tabItem {
                     Label("History", systemImage: "clock.fill")
                 }
                 .tag(Tab.history)
+                
+                CalendarView()
+                    .environmentObject(calendarManager)
+                    .tabItem {
+                        Label("Calendar", systemImage: "calendar")
+                    }
+                    .tag(Tab.calendar)
             }
             // Enable tab bar minimization on scroll (iOS 26 feature)
             .tabBarMinimizeBehavior(.onScrollDown)
