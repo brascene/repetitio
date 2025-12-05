@@ -12,6 +12,8 @@ enum Tab: Int, Hashable {
     case daily = 1
     case calendar = 2
     case habits = 3
+    case fast = 4
+    case settings = 5
 }
 
 struct ContentView: View {
@@ -23,6 +25,8 @@ struct ContentView: View {
 
     @State private var youtubeURL: String = ""
     @SceneStorage("selectedTab") private var selectedTab: Tab = .player
+    @AppStorage("showPlayerTab") private var showPlayerTab = true
+    @AppStorage("showFastTab") private var showFastTab = true
     @State private var startTime: String = ""
     @State private var endTime: String = ""
     @State private var repeatCount: String = "0"
@@ -30,18 +34,20 @@ struct ContentView: View {
     var body: some View {
         if #available(iOS 26.0, *) {
             TabView(selection: $selectedTab) {
-                PlayerView(
-                    playerController: playerController,
-                    historyManager: historyManager,
-                    youtubeURL: $youtubeURL,
-                    startTime: $startTime,
-                    endTime: $endTime,
-                    repeatCount: $repeatCount
-                )
-                .tabItem {
-                    Label("Player", systemImage: "play.rectangle.fill")
+                if showPlayerTab {
+                    PlayerView(
+                        playerController: playerController,
+                        historyManager: historyManager,
+                        youtubeURL: $youtubeURL,
+                        startTime: $startTime,
+                        endTime: $endTime,
+                        repeatCount: $repeatCount
+                    )
+                    .tabItem {
+                        Label("Player", systemImage: "play.rectangle.fill")
+                    }
+                    .tag(Tab.player)
                 }
-                .tag(Tab.player)
                 
                 DailyRepeatView()
                     .environmentObject(dailyRepeatManager)
@@ -63,9 +69,45 @@ struct ContentView: View {
                         Label("Habits", systemImage: "heart.fill")
                     }
                     .tag(Tab.habits)
+                
+                if showFastTab {
+                    FastView()
+                        .tabItem {
+                            Label("Fast", systemImage: "moon.stars.fill")
+                        }
+                        .tag(Tab.fast)
+                }
+                
+                SettingsView()
+                    .tabItem {
+                        Label("Settings", systemImage: "gearshape.fill")
+                    }
+                    .tag(Tab.settings)
             }
             // Enable tab bar minimization on scroll (iOS 26 feature)
             .tabBarMinimizeBehavior(.onScrollDown)
+            .onAppear {
+                // If Player tab is hidden and Player is selected, switch to Daily tab
+                if !showPlayerTab && selectedTab == .player {
+                    selectedTab = .daily
+                }
+                // If Fast tab is hidden and Fast is selected, switch to Daily tab
+                if !showFastTab && selectedTab == .fast {
+                    selectedTab = .daily
+                }
+            }
+            .onChange(of: showPlayerTab) { oldValue, newValue in
+                // If Player tab is hidden and it was selected, switch to Daily tab
+                if !newValue && selectedTab == .player {
+                    selectedTab = .daily
+                }
+            }
+            .onChange(of: showFastTab) { oldValue, newValue in
+                // If Fast tab is hidden and it was selected, switch to Daily tab
+                if !newValue && selectedTab == .fast {
+                    selectedTab = .daily
+                }
+            }
         } else {
             // Fallback on earlier versions
         }
