@@ -7,6 +7,11 @@
 
 import SwiftUI
 
+enum DailySegment: String, CaseIterable {
+    case daily = "Daily"
+    case history = "History"
+}
+
 struct DailyRepeatView: View {
     @EnvironmentObject var manager: DailyRepeatManager
     @State private var showingAddItem = false
@@ -15,6 +20,8 @@ struct DailyRepeatView: View {
     @State private var showingCelebration = false
     @State private var completedGoalName = ""
     @State private var showingResetConfirmation = false
+    @State private var selectedSegment: DailySegment = .daily
+    @State private var showingClearHistoryAlert = false
     
     var body: some View {
         ZStack {
@@ -34,11 +41,20 @@ struct DailyRepeatView: View {
                 // Header
                 headerView
                 
-                // Content
-                if manager.items.isEmpty {
-                    emptyStateView
+                // Segmented Control
+                segmentedControlView
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 16)
+                
+                // Content based on selected segment
+                if selectedSegment == .daily {
+                    if manager.items.isEmpty {
+                        emptyStateView
+                    } else {
+                        contentView
+                    }
                 } else {
-                    contentView
+                    tasksHistoryContentView
                 }
             }
         }
@@ -76,6 +92,44 @@ struct DailyRepeatView: View {
         } message: {
             Text("Are you sure you want to reset all daily repeat progress to zero? This action cannot be undone.")
         }
+        .alert("Clear All History", isPresented: $showingClearHistoryAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Clear All", role: .destructive) {
+                withAnimation {
+                    manager.clearTaskHistory()
+                }
+            }
+        } message: {
+            Text("Are you sure you want to delete all \(manager.taskHistory.count) completed tasks?")
+        }
+    }
+    
+    // MARK: - Segmented Control
+    
+    private var segmentedControlView: some View {
+        Picker("Segment", selection: $selectedSegment) {
+            ForEach(DailySegment.allCases, id: \.self) { segment in
+                Text(segment.rawValue).tag(segment)
+            }
+        }
+        .pickerStyle(.segmented)
+    }
+    
+    // MARK: - Tasks History Content
+    
+    private var tasksHistoryContentView: some View {
+        TasksHistoryContent(
+            dailyRepeatManager: manager,
+            onRestartTask: restartTaskFromHistory
+        )
+    }
+    
+    private func restartTaskFromHistory(_ historyItem: TaskHistoryItem) {
+        // Restart the task from history
+        manager.restartTaskFromHistory(historyItem)
+        
+        // Switch to daily segment
+        selectedSegment = .daily
     }
     
     // MARK: - Header View
@@ -105,32 +159,44 @@ struct DailyRepeatView: View {
                 
                 Spacer()
                 
-                Menu {
-                    Button {
-                        showingAddItem = true
-                    } label: {
-                        Label("Create Custom", systemImage: "pencil")
-                    }
-                    
-                    Button {
-                        showingTemplates = true
-                    } label: {
-                        Label("Quick Templates", systemImage: "square.grid.2x2")
-                    }
-                    
-                    if !manager.items.isEmpty {
-                        Divider()
-                        
-                        Button(role: .destructive) {
-                            showingResetConfirmation = true
+                if selectedSegment == .daily {
+                    Menu {
+                        Button {
+                            showingAddItem = true
                         } label: {
-                            Label("Reset All Progress", systemImage: "arrow.counterclockwise")
+                            Label("Create Custom", systemImage: "pencil")
+                        }
+                        
+                        Button {
+                            showingTemplates = true
+                        } label: {
+                            Label("Quick Templates", systemImage: "square.grid.2x2")
+                        }
+                        
+                        if !manager.items.isEmpty {
+                            Divider()
+                            
+                            Button(role: .destructive) {
+                                showingResetConfirmation = true
+                            } label: {
+                                Label("Reset All Progress", systemImage: "arrow.counterclockwise")
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 28))
+                            .foregroundColor(.blue)
+                    }
+                } else {
+                    if !manager.taskHistory.isEmpty {
+                        Button {
+                            showingClearHistoryAlert = true
+                        } label: {
+                            Image(systemName: "trash.circle.fill")
+                                .font(.system(size: 28))
+                                .foregroundColor(.red)
                         }
                     }
-                } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 28))
-                        .foregroundColor(.blue)
                 }
             }
             
@@ -273,6 +339,7 @@ struct DailyRepeatView: View {
             Spacer()
         }
     }
+    
 }
 
 // MARK: - Daily Repeat Card

@@ -46,7 +46,6 @@ class CalendarManager: ObservableObject {
         notificationManager.requestAuthorization()
         
         loadEvents()
-        prefillInitialDataIfNeeded()
         
         // Ensure notifications are set up correctly after loading
         updateNotificationsForNextEvent()
@@ -142,6 +141,65 @@ class CalendarManager: ObservableObject {
         updateNotificationsForNextEvent()
     }
     
+    func deletePastEvents() {
+        let fetchRequest: NSFetchRequest<CalendarEventEntity> = CalendarEventEntity.fetchRequest()
+        let today = Calendar.current.startOfDay(for: Date())
+        
+        do {
+            let entities = try context.fetch(fetchRequest)
+            var deletedCount = 0
+            
+            for entity in entities {
+                guard let date = entity.date else { continue }
+                let eventDate = Calendar.current.startOfDay(for: date)
+                
+                // Only delete past events
+                if eventDate < today {
+                    // Cancel notifications for this event before deleting
+                    if let eventId = entity.id {
+                        notificationManager.cancelNotifications(for: eventId)
+                    }
+                    context.delete(entity)
+                    deletedCount += 1
+                }
+            }
+            
+            try context.save()
+            loadEvents()
+            
+            // Update notifications after deleting past events
+            updateNotificationsForNextEvent()
+            
+            print("✅ Deleted \(deletedCount) past calendar events")
+        } catch {
+            print("❌ Failed to delete past events: \(error)")
+        }
+    }
+    
+    func deleteAllEvents() {
+        let fetchRequest: NSFetchRequest<CalendarEventEntity> = CalendarEventEntity.fetchRequest()
+        
+        do {
+            let entities = try context.fetch(fetchRequest)
+            for entity in entities {
+                // Cancel notifications for each event before deleting
+                if let eventId = entity.id {
+                    notificationManager.cancelNotifications(for: eventId)
+                }
+                context.delete(entity)
+            }
+            try context.save()
+            loadEvents()
+            
+            // Cancel all notifications since all events are deleted
+            notificationManager.cancelAllNotifications()
+            
+            print("✅ Deleted all calendar events")
+        } catch {
+            print("❌ Failed to delete all events: \(error)")
+        }
+    }
+    
     func deleteTodo(_ todoId: UUID) {
         guard let todoEntity = getTodoEntity(for: todoId) else { return }
         
@@ -181,8 +239,7 @@ class CalendarManager: ObservableObject {
             .sorted { $0.date < $1.date }
             .first
         
-        guard let event = nextEvent,
-              let firstIncompleteTodo = event.todos.first(where: { !$0.isCompleted }) else {
+        guard let event = nextEvent else {
             // No upcoming unchecked events - cancel all notifications
             notificationManager.cancelAllNotifications()
             isUpdatingNotifications = false
@@ -190,13 +247,29 @@ class CalendarManager: ObservableObject {
             return
         }
         
+        // Get all incomplete todos for this event
+        let incompleteTodos = event.todos.filter { !$0.isCompleted }
+        guard !incompleteTodos.isEmpty else {
+            // All todos completed - cancel notifications
+            notificationManager.cancelAllNotifications()
+            isUpdatingNotifications = false
+            print("ℹ️ All todos completed for event: \(event.date) - cancelled notifications")
+            return
+        }
+        
+        // Create notification body with all incomplete todos
+        let todoTitles = incompleteTodos.map { $0.title }.joined(separator: ", ")
+        let notificationTitle = incompleteTodos.count == 1 
+            ? incompleteTodos.first!.title 
+            : "\(incompleteTodos.count) medications"
+        
         // Check if notifications are already scheduled for this event
         notificationManager.hasNotificationsScheduled(for: event.id) { [weak self] hasNotifications in
             guard let self = self else { return }
             
             if hasNotifications {
                 self.isUpdatingNotifications = false
-                print("✅ Notifications already scheduled for next event: \(event.date) - \(firstIncompleteTodo.title) - skipping reschedule")
+                print("✅ Notifications already scheduled for next event: \(event.date) - \(notificationTitle) - skipping reschedule")
                 return
             }
             
@@ -205,10 +278,10 @@ class CalendarManager: ObservableObject {
             self.notificationManager.scheduleNotifications(
                 for: event.id,
                 date: event.date,
-                todoTitle: firstIncompleteTodo.title
+                todoTitle: todoTitles
             )
             self.isUpdatingNotifications = false
-            print("✅ Scheduled notifications for next event: \(event.date) - \(firstIncompleteTodo.title)")
+            print("✅ Scheduled notifications for next event: \(event.date) - \(notificationTitle)")
         }
     }
     

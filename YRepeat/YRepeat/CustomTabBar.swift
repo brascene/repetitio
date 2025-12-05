@@ -50,16 +50,16 @@ struct CustomTabBar: View {
                     .frame(width: tabWidth)
                     
                     TabBarItem(
-                        icon: "clock.fill",
-                        title: "History",
+                        icon: "calendar",
+                        title: "Calendar",
                         isSelected: selectedTab == 2,
                         action: { selectedTab = 2 }
                     )
                     .frame(width: tabWidth)
                     
                     TabBarItem(
-                        icon: "calendar",
-                        title: "Calendar",
+                        icon: "heart.fill",
+                        title: "Habits",
                         isSelected: selectedTab == 3,
                         action: { selectedTab = 3 }
                     )

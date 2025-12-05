@@ -34,4 +34,15 @@
         <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="event" optional="NO" maxCount="1" deletionRule="Nullify" destinationEntity="CalendarEventEntity" inverseName="todos" inverseEntity="CalendarEventEntity"/>
     </entity>
+    <entity name="HabitEntity" representedClassName="HabitEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="name" optional="NO" attributeType="String"/>
+        <attribute name="isGoodHabit" optional="NO" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="currentStreak" optional="NO" attributeType="Integer 32" defaultValue="0" usesScalarValueType="YES"/>
+        <attribute name="longestStreak" optional="NO" attributeType="Integer 32" defaultValue="0" usesScalarValueType="YES"/>
+        <attribute name="lastCompletedDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="iconName" optional="NO" attributeType="String" defaultValue="star.fill"/>
+        <attribute name="color" optional="NO" attributeType="String" defaultValue="blue"/>
+    </entity>
 </model>

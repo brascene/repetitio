@@ -10,8 +10,8 @@ import SwiftUI
 enum Tab: Int, Hashable {
     case player = 0
     case daily = 1
-    case history = 2
-    case calendar = 3
+    case calendar = 2
+    case habits = 3
 }
 
 struct ContentView: View {
@@ -19,6 +19,7 @@ struct ContentView: View {
     @StateObject private var historyManager = HistoryManager()
     @StateObject private var dailyRepeatManager = DailyRepeatManager()
     @StateObject private var calendarManager = CalendarManager()
+    @StateObject private var habitManager = HabitManager()
 
     @State private var youtubeURL: String = ""
     @SceneStorage("selectedTab") private var selectedTab: Tab = .player
@@ -49,30 +50,19 @@ struct ContentView: View {
                     }
                     .tag(Tab.daily)
                 
-                HistoryView(
-                    historyManager: historyManager,
-                    playerController: playerController,
-                    selectedTab: Binding(
-                        get: { selectedTab.rawValue },
-                        set: { selectedTab = Tab(rawValue: $0) ?? .player }
-                    ),
-                    youtubeURL: $youtubeURL,
-                    startTime: $startTime,
-                    endTime: $endTime,
-                    repeatCount: $repeatCount   
-                )
-                .environmentObject(dailyRepeatManager)
-                .tabItem {
-                    Label("History", systemImage: "clock.fill")
-                }
-                .tag(Tab.history)
-                
                 CalendarView()
                     .environmentObject(calendarManager)
                     .tabItem {
                         Label("Calendar", systemImage: "calendar")
                     }
                     .tag(Tab.calendar)
+                
+                HabitView()
+                    .environmentObject(habitManager)
+                    .tabItem {
+                        Label("Habits", systemImage: "heart.fill")
+                    }
+                    .tag(Tab.habits)
             }
             // Enable tab bar minimization on scroll (iOS 26 feature)
             .tabBarMinimizeBehavior(.onScrollDown)
