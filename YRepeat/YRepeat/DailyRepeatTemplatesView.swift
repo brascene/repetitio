@@ -16,15 +16,7 @@ struct DailyRepeatTemplatesView: View {
         NavigationView {
             ZStack {
                 // Background
-                LinearGradient(
-                    gradient: Gradient(colors: [
-                        Color(red: 0.05, green: 0.05, blue: 0.15),
-                        Color(red: 0.1, green: 0.15, blue: 0.3)
-                    ]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
+                LiquidBackgroundView()
                 
                 VStack(spacing: 0) {
                     // Header

@@ -8,22 +8,14 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @AppStorage("showPlayerTab") private var showPlayerTab = true
     @AppStorage("showFastTab") private var showFastTab = true
     
     var body: some View {
         ZStack {
-            // Premium gradient background
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 0.05, green: 0.05, blue: 0.15),
-                    Color(red: 0.1, green: 0.15, blue: 0.3),
-                    Color(red: 0.05, green: 0.1, blue: 0.2)
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            // Theme-aware background
+            LiquidBackgroundView()
             
             VStack(spacing: 0) {
                 // Header
@@ -32,6 +24,105 @@ struct SettingsView: View {
                 // Content
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 24) {
+                        // Appearance Section
+                        GlassmorphicCard {
+                            VStack(alignment: .leading, spacing: 20) {
+                                HStack {
+                                    Image(systemName: "paintpalette.fill")
+                                        .font(.system(size: 20, weight: .semibold))
+                                        .foregroundStyle(
+                                            LinearGradient(
+                                                colors: [.pink, .orange],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                        )
+                                    
+                                    Text("Appearance")
+                                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                                        .foregroundColor(.white)
+                                    
+                                    Spacer()
+                                }
+                                
+                                Divider()
+                                    .background(Color.white.opacity(0.2))
+                                
+                                // Gradient Mode Toggle
+                                HStack {
+                                    Text("Use Single Color")
+                                        .font(.system(size: 16, weight: .medium, design: .rounded))
+                                        .foregroundColor(.white)
+                                    
+                                    Spacer()
+                                    
+                                    Toggle("", isOn: $themeManager.useSingleColor)
+                                        .labelsHidden()
+                                        .tint(.blue)
+                                }
+                                
+                                if themeManager.useSingleColor {
+                                    // Single Color Picker
+                                    HStack {
+                                        Text("Background Color")
+                                            .font(.system(size: 16, weight: .medium, design: .rounded))
+                                            .foregroundColor(.white.opacity(0.7))
+                                        
+                                        Spacer()
+                                        
+                                        ColorPicker("", selection: Binding(
+                                            get: { themeManager.singleColor },
+                                            set: { themeManager.setSingleColor($0) }
+                                        ))
+                                        .labelsHidden()
+                                    }
+                                } else {
+                                    // Gradient Pickers
+                                    VStack(spacing: 16) {
+                                        HStack {
+                                            Text("Start Color")
+                                                .font(.system(size: 16, weight: .medium, design: .rounded))
+                                                .foregroundColor(.white.opacity(0.7))
+                                            
+                                            Spacer()
+                                            
+                                            ColorPicker("", selection: Binding(
+                                                get: { themeManager.gradientStart },
+                                                set: { newColor in
+                                                    themeManager.setGradientColors(
+                                                        start: newColor,
+                                                        end: themeManager.gradientEnd
+                                                    )
+                                                }
+                                            ))
+                                            .labelsHidden()
+                                        }
+                                        
+                                        HStack {
+                                            Text("End Color")
+                                                .font(.system(size: 16, weight: .medium, design: .rounded))
+                                                .foregroundColor(.white.opacity(0.7))
+                                            
+                                            Spacer()
+                                            
+                                            ColorPicker("", selection: Binding(
+                                                get: { themeManager.gradientEnd },
+                                                set: { newColor in
+                                                    themeManager.setGradientColors(
+                                                        start: themeManager.gradientStart,
+                                                        end: newColor
+                                                    )
+                                                }
+                                            ))
+                                            .labelsHidden()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 20)
+                        
                         // Tab Visibility Section
                         GlassmorphicCard {
                             VStack(alignment: .leading, spacing: 20) {
@@ -109,7 +200,6 @@ struct SettingsView: View {
                             }
                         }
                         .padding(.horizontal, 20)
-                        .padding(.top, 20)
                         
                         Spacer()
                             .frame(height: 20)
@@ -124,14 +214,14 @@ struct SettingsView: View {
     private var headerView: some View {
         HStack {
             Image(systemName: "gearshape.fill")
-                .font(.system(size: 32))
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [.blue, .purple],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
+            .font(.system(size: 32))
+            .foregroundStyle(
+                LinearGradient(
+                    colors: [.blue, .purple],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
                 )
+            )
             
             Text("Settings")
                 .font(.system(size: 32, weight: .bold, design: .rounded))
@@ -153,5 +243,5 @@ struct SettingsView: View {
 
 #Preview {
     SettingsView()
+        .environmentObject(ThemeManager())
 }
-

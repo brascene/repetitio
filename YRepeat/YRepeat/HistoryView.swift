@@ -30,17 +30,8 @@ struct HistoryView: View {
     var body: some View {
         ZStack {
             // Premium gradient background
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 0.05, green: 0.05, blue: 0.15),
-                    Color(red: 0.1, green: 0.15, blue: 0.3),
-                    Color(red: 0.05, green: 0.1, blue: 0.2)
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-
+            LiquidBackgroundView()
+            
             VStack(spacing: 0) {
                 // Header
                 HStack {
@@ -352,7 +343,7 @@ struct TasksHistoryContent: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 16) {
                     ForEach(dailyRepeatManager.taskHistory) { historyItem in
-                        TaskHistoryCard(historyItem: historyItem) {
+                        ModernTaskHistoryCard(historyItem: historyItem) {
                             onRestartTask(historyItem)
                         }
                     }
@@ -364,104 +355,6 @@ struct TasksHistoryContent: View {
     }
 }
 
-struct TaskHistoryCard: View {
-    let historyItem: TaskHistoryItem
-    let onRestart: () -> Void
-    
-    @State private var isPressed = false
-    
-    var body: some View {
-        Button {
-            onRestart()
-        } label: {
-            GlassmorphicCard {
-                HStack(spacing: 16) {
-                    // Task icon
-                    ZStack {
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [colorFromString(historyItem.color), colorFromString(historyItem.color).opacity(0.7)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 50, height: 50)
-                        
-                        Image(systemName: historyItem.iconName)
-                            .font(.system(size: 20))
-                            .foregroundColor(.white)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 8) {
-                        // Task name
-                        Text(historyItem.name)
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.white)
-                            .lineLimit(1)
-                        
-                        // Completion info
-                        HStack(spacing: 16) {
-                            HStack(spacing: 6) {
-                                Image(systemName: "target")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.green)
-                                Text("\(historyItem.targetValue)")
-                                    .font(.system(size: 13, weight: .medium, design: .monospaced))
-                                    .foregroundColor(.white.opacity(0.7))
-                            }
-                            
-                            HStack(spacing: 6) {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.green)
-                                Text(historyItem.displayText)
-                                    .font(.system(size: 13, weight: .medium))
-                                    .foregroundColor(.white.opacity(0.7))
-                            }
-                        }
-                        
-                        // Completion date
-                        Text(historyItem.relativeDate)
-                            .font(.caption2)
-                            .foregroundColor(.white.opacity(0.5))
-                    }
-                    
-                    Spacer()
-                    
-                    // Restart button
-                    VStack(spacing: 4) {
-                        Image(systemName: "arrow.clockwise.circle.fill")
-                            .font(.system(size: 24))
-                            .foregroundColor(.blue)
-                        
-                        Text("Restart")
-                            .font(.caption2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.blue)
-                    }
-                }
-            }
-        }
-        .buttonStyle(ScaleButtonStyle())
-    }
-    
-    private func colorFromString(_ colorName: String) -> Color {
-        switch colorName.lowercased() {
-        case "red": return .red
-        case "blue": return .blue
-        case "green": return .green
-        case "orange": return .orange
-        case "purple": return .purple
-        case "pink": return .pink
-        case "yellow": return .yellow
-        case "mint": return .mint
-        case "cyan": return .cyan
-        case "indigo": return .indigo
-        default: return .blue
-        }
-    }
-}
 
 #Preview {
     HistoryView(

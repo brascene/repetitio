@@ -11,6 +11,7 @@ internal import CoreData
 @main
 struct YRepeatApp: App {
     @StateObject private var dataController = PersistenceController()
+    @StateObject private var themeManager = ThemeManager()
     
     init() {
         // Migrate data from UserDefaults to Core Data on app launch
@@ -21,6 +22,7 @@ struct YRepeatApp: App {
         WindowGroup {
             ContentView()
                 .environment(\.managedObjectContext, dataController.container.viewContext)
+                .environmentObject(themeManager)
         }
     }
 }

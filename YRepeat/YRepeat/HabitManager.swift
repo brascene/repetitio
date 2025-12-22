@@ -168,6 +168,22 @@ class HabitManager: ObservableObject {
         let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
         impactFeedback.impactOccurred()
     }
+
+    /// Resets the habit's current progress (streak) back to zero and clears the last completed date.
+    /// This is used when the user "breaks" a bad habit or wants to restart a good habit streak.
+    func resetHabitProgress(_ habit: Habit) {
+        guard let entity = getHabitEntity(for: habit.id) else { return }
+
+        entity.currentStreak = 0
+        entity.lastCompletedDate = nil
+
+        try? context.save()
+        loadHabits()
+
+        // Haptic feedback
+        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+        impactFeedback.impactOccurred()
+    }
     
     func checkDailyStreaks() {
         let today = Calendar.current.startOfDay(for: Date())

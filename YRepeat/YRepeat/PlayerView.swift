@@ -31,17 +31,8 @@ struct PlayerView: View {
     var body: some View {
         ZStack {
             // Premium gradient background
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 0.05, green: 0.05, blue: 0.15),
-                    Color(red: 0.1, green: 0.15, blue: 0.3),
-                    Color(red: 0.05, green: 0.1, blue: 0.2)
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-
+            LiquidBackgroundView()
+            
             VStack(spacing: 0) {
                 // Header
                 headerView

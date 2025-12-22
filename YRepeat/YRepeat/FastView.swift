@@ -22,49 +22,44 @@ struct FastView: View {
     @State private var customHours: Int = 16
     @State private var selectedSegment: FastSegment = .current
     
+    // Animation state
+    @State private var animateContent = false
+    
     var body: some View {
         ZStack {
             // Premium gradient background
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 0.05, green: 0.05, blue: 0.15),
-                    Color(red: 0.1, green: 0.15, blue: 0.3),
-                    Color(red: 0.05, green: 0.1, blue: 0.2)
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            LiquidBackgroundView()
             
             VStack(spacing: 0) {
                 // Header
-                headerView
+                FastHeaderView()
+                    .zIndex(1)
                 
-                // Segmented Control
-                segmentedControlView
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 16)
-                
-                // Main Content
+                // Content
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 32) {
+                    VStack(spacing: 24) {
+                        // Segmented Control
+                        FastSegmentedControl(selectedSegment: $selectedSegment)
+                            .padding(.horizontal, 20)
+                            .padding(.top, 10)
+                        
                         if selectedSegment == .current {
                             if let fast = manager.activeFast {
-                                // Active Fast View
                                 activeFastView(fast: fast)
+                                    .transition(.move(edge: .trailing).combined(with: .opacity))
                             } else {
-                                // No Active Fast View
                                 emptyStateView
+                                    .transition(.opacity)
+                                    .padding(.top, 40)
                             }
                         } else {
-                            // History View
                             historyView
+                                .transition(.move(edge: .leading).combined(with: .opacity))
                         }
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 20)
-                    .padding(.bottom, 40)
+                    .padding(.bottom, 100)
                 }
+                .scrollContentBackground(.hidden)
             }
         }
         .sheet(isPresented: $showingStartFast) {
@@ -106,97 +101,45 @@ struct FastView: View {
         } message: {
             Text("Are you sure you want to delete all fasts? This action cannot be undone.")
         }
-    }
-    
-    // MARK: - Header View
-    
-    private var headerView: some View {
-        HStack {
-            Image(systemName: "moon.stars.fill")
-                .font(.system(size: 32))
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [.purple, .blue],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-            
-            Text("Fast")
-                .font(.system(size: 32, weight: .bold, design: .rounded))
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [.white, .white.opacity(0.8)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-            
-            Spacer()
-        }
-        .padding(.horizontal, 20)
-        .padding(.top, 20)
-        .padding(.bottom, 16)
-    }
-    
-    // MARK: - Segmented Control
-    
-    private var segmentedControlView: some View {
-        Picker("Segment", selection: $selectedSegment) {
-            ForEach(FastSegment.allCases, id: \.self) { segment in
-                Text(segment.rawValue).tag(segment)
+        .onAppear {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                animateContent = true
             }
         }
-        .pickerStyle(.segmented)
     }
     
     // MARK: - Active Fast View
     
     private func activeFastView(fast: Fast) -> some View {
         VStack(spacing: 32) {
-            // Circular Progress Indicator
-            circularProgressView(fast: fast)
+            // Circular Progress
+            FastCircularProgressView(fast: fast)
             
-            // Fasting Phase Indicator
+            // Phase Card
             fastingPhaseCard(fast: fast)
             
-            // Fast Info Cards
-            VStack(spacing: 16) {
-                fastInfoCard(
-                    title: "Elapsed",
-                    value: formatTime(fast.elapsedHours),
-                    icon: "clock.fill",
-                    color: .blue
-                )
-                
-                fastInfoCard(
-                    title: "Remaining",
-                    value: formatTime(fast.remainingHours),
-                    icon: "hourglass.bottomhalf.filled",
-                    color: .purple
-                )
-                
-                fastInfoCard(
-                    title: "Goal",
-                    value: formatTime(Double(fast.goalHours)),
-                    icon: "target",
-                    color: .green
-                )
-            }
+            // Stats
+            FastStatsView(fast: fast)
+                .padding(.horizontal, 20)
             
-            // Action Buttons
-            HStack(spacing: 16) {
-                Button(action: {
-                    showingDeleteConfirmation = true
-                }) {
-                    HStack {
-                        Image(systemName: "stop.circle.fill")
-                        Text("End Fast")
-                    }
-                    .frame(maxWidth: .infinity)
+            // Action Button
+            Button(action: {
+                showingDeleteConfirmation = true
+            }) {
+                HStack(spacing: 8) {
+                    Image(systemName: "stop.circle.fill")
+                        .font(.system(size: 20))
+                    Text("End Fast")
+                        .fontWeight(.semibold)
                 }
-                .buttonStyle(PremiumButton(color: .red, isProminent: true))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(Color.red.opacity(0.8))
+                .foregroundColor(.white)
+                .cornerRadius(20)
+                .shadow(color: .red.opacity(0.3), radius: 10, x: 0, y: 5)
             }
+            .padding(.horizontal, 40)
         }
     }
     
@@ -206,90 +149,106 @@ struct FastView: View {
         let phase = fast.currentPhase
         let nextPhase = getNextPhase(current: phase)
         
-        return GlassmorphicCard {
-            VStack(spacing: 16) {
-                // Current Phase
-                HStack(spacing: 12) {
+        return VStack(spacing: 16) {
+            // Current Phase Header
+            HStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(phase.color.opacity(0.2))
+                        .frame(width: 56, height: 56)
+                    
                     Image(systemName: phase.icon)
-                        .font(.system(size: 32, weight: .semibold))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [phase.color, phase.color.opacity(0.7)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 50)
+                        .font(.system(size: 28))
+                        .foregroundColor(phase.color)
+                }
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(phase.rawValue)
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
                     
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(phase.rawValue)
-                            .font(.system(size: 20, weight: .bold, design: .rounded))
-                            .foregroundColor(.white)
+                    Text(phase.description)
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .foregroundColor(.white.opacity(0.7))
+                        .lineLimit(2)
+                }
+                
+                Spacer()
+            }
+            
+            // Phase Progress
+            if let nextPhase = nextPhase {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Next: \(nextPhase.rawValue)")
+                            .font(.system(size: 13, weight: .medium, design: .rounded))
+                            .foregroundColor(.white.opacity(0.6))
                         
-                        Text(phase.description)
-                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                        Spacer()
+                        
+                        Text("\(Int(fast.phaseProgress * 100))%")
+                            .font(.system(size: 13, weight: .bold, design: .monospaced))
                             .foregroundColor(.white.opacity(0.8))
-                            .lineLimit(2)
                     }
                     
-                    Spacer()
-                }
-                
-                // Motivational Message
-                HStack {
-                    Text(phase.motivationalMessage)
-                        .font(.system(size: 16, weight: .semibold, design: .rounded))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [phase.color, phase.color.opacity(0.8)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                    
-                    Spacer()
-                }
-                .padding(.top, 4)
-                
-                // Phase Progress Bar
-                if let nextPhase = nextPhase {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text("Progress to \(nextPhase.rawValue)")
-                                .font(.system(size: 12, weight: .medium, design: .rounded))
-                                .foregroundColor(.white.opacity(0.7))
+                    GeometryReader { geometry in
+                        ZStack(alignment: .leading) {
+                            Capsule()
+                                .fill(Color.white.opacity(0.1))
+                                .frame(height: 6)
                             
-                            Spacer()
-                            
-                            Text("\(Int(fast.phaseProgress * 100))%")
-                                .font(.system(size: 12, weight: .bold, design: .rounded))
-                                .foregroundColor(.white.opacity(0.9))
-                        }
-                        
-                        GeometryReader { geometry in
-                            ZStack(alignment: .leading) {
-                                Capsule()
-                                    .fill(Color.white.opacity(0.1))
-                                    .frame(height: 8)
-                                
-                                Capsule()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [phase.color, nextPhase.color],
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        )
+                            Capsule()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [phase.color, nextPhase.color],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
                                     )
-                                    .frame(width: geometry.size.width * fast.phaseProgress, height: 8)
-                                    .animation(.linear(duration: 0.3), value: fast.phaseProgress)
-                            }
+                                )
+                                .frame(width: geometry.size.width * fast.phaseProgress, height: 6)
                         }
-                        .frame(height: 8)
                     }
-                    .padding(.top, 8)
+                    .frame(height: 6)
                 }
             }
+            
+            // Motivation
+            HStack(spacing: 8) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 14))
+                    .foregroundColor(.yellow)
+                
+                Text(phase.motivationalMessage)
+                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .foregroundColor(.white.opacity(0.9))
+                    .multilineTextAlignment(.leading)
+                
+                Spacer()
+            }
+            .padding(12)
+            .background(Color.white.opacity(0.05))
+            .cornerRadius(12)
         }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(.ultraThinMaterial)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(
+                    LinearGradient(
+                        colors: [
+                            phase.color.opacity(0.3),
+                            phase.color.opacity(0.1)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        )
+        .padding(.horizontal, 20)
     }
     
     private func getNextPhase(current: FastingPhase) -> FastingPhase? {
@@ -308,298 +267,59 @@ struct FastView: View {
             if manager.fastHistory.isEmpty {
                 emptyHistoryView
             } else {
-                // History Header with Delete All
                 HStack {
-                    Text("Fast History")
-                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                    Text("Past Fasts")
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                     
                     Spacer()
                     
-                    Button(action: {
+                    Button {
                         showingDeleteAllConfirmation = true
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "trash")
-                            Text("Delete All")
-                        }
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
-                        .foregroundColor(.red)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(
-                            Capsule()
-                                .fill(Color.red.opacity(0.2))
-                        )
+                    } label: {
+                        Text("Clear History")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.red.opacity(0.8))
                     }
                 }
-                .padding(.horizontal, 4)
+                .padding(.horizontal, 24)
                 
-                // History List
-                LazyVStack(spacing: 12) {
+                LazyVStack(spacing: 16) {
                     ForEach(manager.fastHistory) { fast in
-                        fastHistoryCard(fast: fast)
+                        FastHistoryRowView(
+                            fast: fast,
+                            onDelete: {
+                                fastToDelete = fast
+                            }
+                        )
+                        .transition(.scale.combined(with: .opacity))
                     }
                 }
+                .padding(.horizontal, 20)
             }
         }
     }
     
     private var emptyHistoryView: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "clock.arrow.circlepath")
-                .font(.system(size: 60))
-                .foregroundColor(.white.opacity(0.5))
-            
-            Text("No Fast History")
-                .font(.system(size: 22, weight: .bold, design: .rounded))
-                .foregroundColor(.white)
-            
-            Text("Completed fasts will appear here")
-                .font(.system(size: 16, weight: .medium, design: .rounded))
-                .foregroundColor(.white.opacity(0.7))
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 60)
-    }
-    
-    private func fastHistoryCard(fast: Fast) -> some View {
-        GlassmorphicCard {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(fast.fastType.displayName)
-                            .font(.system(size: 18, weight: .bold, design: .rounded))
-                            .foregroundColor(.white)
-                        
-                        Text(formatDate(fast.startTime))
-                            .font(.system(size: 14, weight: .medium, design: .rounded))
-                            .foregroundColor(.white.opacity(0.7))
-                    }
-                    
-                    Spacer()
-                    
-                    HStack(spacing: 8) {
-                        VStack(alignment: .trailing, spacing: 6) {
-                            Text(formatTime(fast.durationHours))
-                                .font(.system(size: 20, weight: .bold, design: .rounded))
-                                .foregroundStyle(
-                                    LinearGradient(
-                                        colors: [.purple, .blue],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                            
-                            if fast.isCompleted {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .font(.system(size: 12))
-                                    Text("Completed")
-                                        .font(.system(size: 12, weight: .semibold, design: .rounded))
-                                }
-                                .foregroundColor(.green)
-                            } else {
-                                Text("Incomplete")
-                                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                                    .foregroundColor(.orange)
-                            }
-                        }
-                        
-                        // Delete button inline
-                        Button(action: {
-                            fastToDelete = fast
-                        }) {
-                            Image(systemName: "trash")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(.red)
-                                .padding(8)
-                                .background(
-                                    Circle()
-                                        .fill(Color.red.opacity(0.2))
-                                )
-                        }
-                    }
-                }
-                
-                // Progress Bar
-                GeometryReader { geometry in
-                    ZStack(alignment: .leading) {
-                        Capsule()
-                            .fill(Color.white.opacity(0.1))
-                            .frame(height: 6)
-                        
-                        Capsule()
-                            .fill(
-                                LinearGradient(
-                                    colors: [.purple, .blue],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .frame(width: geometry.size.width * fast.progress, height: 6)
-                    }
-                }
-                .frame(height: 6)
-                
-                // Goal info
-                HStack {
-                    Text("Goal: \(formatTime(Double(fast.goalHours)))")
-                        .font(.system(size: 12, weight: .medium, design: .rounded))
-                        .foregroundColor(.white.opacity(0.6))
-                    
-                    Spacer()
-                    
-                    if let endTime = fast.endTime {
-                        Text("Ended: \(formatDate(endTime))")
-                            .font(.system(size: 12, weight: .medium, design: .rounded))
-                            .foregroundColor(.white.opacity(0.6))
-                    }
-                }
-            }
-        }
-    }
-    
-    // MARK: - Circular Progress View
-    
-    private func circularProgressView(fast: Fast) -> some View {
-        ZStack {
-            // Outer glow effect
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [
-                            Color.purple.opacity(0.3),
-                            Color.blue.opacity(0.1),
-                            Color.clear
-                        ],
-                        center: .center,
-                        startRadius: 100,
-                        endRadius: 180
-                    )
-                )
-                .frame(width: 360, height: 360)
-                .blur(radius: 30)
-            
-            // Background circle with glass effect
+        VStack(spacing: 24) {
             ZStack {
                 Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color.white.opacity(0.1),
-                                Color.white.opacity(0.05)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 280, height: 280)
+                    .fill(Color.white.opacity(0.05))
+                    .frame(width: 100, height: 100)
                 
-                // Progress ring background
-                Circle()
-                    .stroke(
-                        Color.white.opacity(0.1),
-                        style: StrokeStyle(lineWidth: 20, lineCap: .round)
-                    )
-                    .frame(width: 260, height: 260)
-                
-                // Progress ring
-                Circle()
-                    .trim(from: 0, to: fast.progress)
-                    .stroke(
-                        AngularGradient(
-                            colors: [
-                                Color.purple,
-                                Color.blue,
-                                Color.cyan,
-                                Color.purple
-                            ],
-                            center: .center,
-                            startAngle: .degrees(-90),
-                            endAngle: .degrees(270)
-                        ),
-                        style: StrokeStyle(lineWidth: 20, lineCap: .round)
-                    )
-                    .frame(width: 260, height: 260)
-                    .rotationEffect(.degrees(-90))
-                    .shadow(color: Color.purple.opacity(0.5), radius: 15, x: 0, y: 0)
-                    .animation(.linear(duration: 0.3), value: fast.progress)
-                
-                // Inner content
-                VStack(spacing: 8) {
-                    Text(formatTime(fast.elapsedHours))
-                        .font(.system(size: 56, weight: .bold, design: .rounded))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [.white, .white.opacity(0.9)],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                    
-                    Text("hours")
-                        .font(.system(size: 18, weight: .medium, design: .rounded))
-                        .foregroundColor(.white.opacity(0.7))
-                    
-                    Text("\(Int(fast.progress * 100))%")
-                        .font(.system(size: 16, weight: .semibold, design: .rounded))
-                        .foregroundColor(.white.opacity(0.6))
-                        .padding(.top, 4)
-                }
+                Image(systemName: "clock.arrow.circlepath")
+                    .font(.system(size: 40))
+                    .foregroundColor(.white.opacity(0.4))
             }
-            .background(
-                VisualEffectBlur(blurStyle: .systemUltraThinMaterialDark)
-                    .clipShape(Circle())
-            )
-            .overlay(
-                Circle()
-                    .stroke(
-                        LinearGradient(
-                            colors: [
-                                Color.white.opacity(0.3),
-                                Color.white.opacity(0.1)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 2
-                    )
-                    .frame(width: 280, height: 280)
-            )
-            .shadow(color: Color.black.opacity(0.3), radius: 30, x: 0, y: 15)
-        }
-        .padding(.vertical, 20)
-    }
-    
-    // MARK: - Fast Info Card
-    
-    private func fastInfoCard(title: String, value: String, icon: String, color: Color) -> some View {
-        GlassmorphicCard {
-            HStack(spacing: 16) {
-                Image(systemName: icon)
-                    .font(.system(size: 24, weight: .semibold))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [color, color.opacity(0.7)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 40)
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(title)
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
-                        .foregroundColor(.white.opacity(0.7))
-                    
-                    Text(value)
-                        .font(.system(size: 24, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
-                }
-                
-                Spacer()
-            }
+            .padding(.top, 40)
+            
+            Text("No History Yet")
+                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+            
+            Text("Your completed fasts will appear here.")
+                .font(.system(size: 16))
+                .foregroundColor(.white.opacity(0.6))
         }
     }
     
@@ -607,60 +327,63 @@ struct FastView: View {
     
     private var emptyStateView: some View {
         VStack(spacing: 32) {
-            // Icon
-            ZStack {
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [
-                                Color.purple.opacity(0.2),
-                                Color.blue.opacity(0.1),
-                                Color.clear
-                            ],
-                            center: .center,
-                            startRadius: 50,
-                            endRadius: 120
+            VStack(spacing: 24) {
+                // Animated Icon
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [.purple.opacity(0.3), .blue.opacity(0.2)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
                         )
-                    )
-                    .frame(width: 240, height: 240)
-                    .blur(radius: 20)
-                
-                Image(systemName: "moon.stars.fill")
-                    .font(.system(size: 80))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [.purple, .blue],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
+                        .frame(width: 120, height: 120)
+                        .blur(radius: 20)
+                    
+                    Image(systemName: "moon.stars.fill")
+                        .font(.system(size: 60))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [.purple, .blue],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
                         )
-                    )
-            }
-            .padding(.top, 40)
-            
-            VStack(spacing: 12) {
-                Text("Start Your Fast")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
+                        .scaleEffect(animateContent ? 1.05 : 0.95)
+                        .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: animateContent)
+                }
                 
-                Text("Track your fasting journey with beautiful progress visualization")
-                    .font(.system(size: 16, weight: .medium, design: .rounded))
-                    .foregroundColor(.white.opacity(0.7))
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 40)
+                VStack(spacing: 12) {
+                    Text("Start Your Fast")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                    
+                    Text("Track your fasting journey and visualize your progress.")
+                        .font(.system(size: 16, weight: .medium, design: .rounded))
+                        .foregroundColor(.white.opacity(0.8))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+                }
             }
             
-            Button(action: {
+            Button {
                 showingStartFast = true
-            }) {
-                HStack {
-                    Image(systemName: "play.circle.fill")
-                    Text("Start Fast")
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 20))
+                    Text("Begin Fast")
+                        .fontWeight(.bold)
                 }
                 .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(Color.purple)
+                .foregroundColor(.white)
+                .cornerRadius(20)
+                .shadow(color: .purple.opacity(0.4), radius: 10, x: 0, y: 5)
             }
-            .buttonStyle(PremiumButton(color: .purple, isProminent: true))
             .padding(.horizontal, 40)
-            .padding(.top, 20)
         }
     }
     
@@ -669,84 +392,86 @@ struct FastView: View {
     private var startFastSheet: some View {
         NavigationView {
             ZStack {
-                // Background
-                LinearGradient(
-                    gradient: Gradient(colors: [
-                        Color(red: 0.05, green: 0.05, blue: 0.15),
-                        Color(red: 0.1, green: 0.15, blue: 0.3)
-                    ]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
+                LiquidBackgroundView()
                 
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 24) {
-                        // Fast Type Selection
-                        VStack(alignment: .leading, spacing: 16) {
-                            Text("Fast Type")
-                                .font(.system(size: 20, weight: .bold, design: .rounded))
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 20)
-                            
-                            LazyVGrid(columns: [
-                                GridItem(.flexible()),
-                                GridItem(.flexible())
-                            ], spacing: 12) {
-                                ForEach(FastType.allCases.filter { $0 != .custom }, id: \.self) { type in
-                                    fastTypeButton(type: type)
-                                }
-                            }
-                            .padding(.horizontal, 20)
-                        }
-                        
-                        // Custom Hours
-                        VStack(alignment: .leading, spacing: 16) {
-                            Text("Custom Duration")
-                                .font(.system(size: 20, weight: .bold, design: .rounded))
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 20)
-                            
-                            GlassmorphicCard {
-                                VStack(spacing: 16) {
-                                    HStack {
-                                        Text("Hours")
-                                            .font(.system(size: 16, weight: .semibold, design: .rounded))
-                                            .foregroundColor(.white)
-                                        
-                                        Spacer()
-                                        
-                                        Text("\(customHours)")
+                ScrollView {
+                    VStack(spacing: 32) {
+                        // Fast Types Grid
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 150))], spacing: 16) {
+                            ForEach(FastType.allCases.filter { $0 != .custom }, id: \.self) { type in
+                                Button {
+                                    selectedFastType = type
+                                    manager.startFast(type: type)
+                                    showingStartFast = false
+                                } label: {
+                                    VStack(spacing: 12) {
+                                        Text(type.displayName)
                                             .font(.system(size: 24, weight: .bold, design: .rounded))
                                             .foregroundColor(.white)
+                                        
+                                        Text("\(type.hours) Hours")
+                                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                                            .foregroundColor(.white.opacity(0.7))
                                     }
-                                    
-                                    Slider(value: Binding(
-                                        get: { Double(customHours) },
-                                        set: { customHours = Int($0) }
-                                    ), in: 1...168, step: 1)
-                                    .tint(.purple)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 24)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .fill(.ultraThinMaterial)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 20)
+                                                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                                            )
+                                    )
                                 }
                             }
-                            .padding(.horizontal, 20)
+                        }
+                        .padding(.horizontal, 20)
+                        
+                        // Custom Duration Section
+                        VStack(spacing: 16) {
+                            Text("Custom Duration")
+                                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                                .foregroundColor(.white.opacity(0.8))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 24)
                             
-                            Button(action: {
-                                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                            VStack(spacing: 20) {
+                                HStack {
+                                    Text("\(customHours) Hours")
+                                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                                        .foregroundColor(.white)
+                                    Spacer()
+                                }
+                                
+                                Slider(value: Binding(
+                                    get: { Double(customHours) },
+                                    set: { customHours = Int($0) }
+                                ), in: 1...168, step: 1)
+                                .tint(.purple)
+                                
+                                Button {
                                     manager.startFast(type: .custom, customHours: customHours)
                                     showingStartFast = false
-                                }
-                            }) {
-                                HStack {
-                                    Image(systemName: "play.circle.fill")
+                                } label: {
                                     Text("Start Custom Fast")
+                                        .fontWeight(.semibold)
+                                        .frame(maxWidth: .infinity)
+                                        .padding()
+                                        .background(Color.white.opacity(0.1))
+                                        .foregroundColor(.white)
+                                        .cornerRadius(16)
                                 }
-                                .frame(maxWidth: .infinity)
                             }
-                            .buttonStyle(PremiumButton(color: .purple, isProminent: true))
+                            .padding(24)
+                            .background(
+                                RoundedRectangle(cornerRadius: 24)
+                                    .fill(.ultraThinMaterial)
+                            )
                             .padding(.horizontal, 20)
                         }
                     }
-                    .padding(.vertical, 20)
+                    .padding(.vertical, 24)
                 }
             }
             .navigationTitle("Start Fast")
@@ -756,60 +481,12 @@ struct FastView: View {
                     Button("Cancel") {
                         showingStartFast = false
                     }
-                    .foregroundColor(.white)
                 }
             }
         }
-    }
-    
-    private func fastTypeButton(type: FastType) -> some View {
-        Button(action: {
-            selectedFastType = type
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                manager.startFast(type: type)
-                showingStartFast = false
-            }
-        }) {
-            VStack(spacing: 8) {
-                Text(type.displayName)
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-                
-                Text("\(type.hours) hours")
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
-                    .foregroundColor(.white.opacity(0.7))
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 20)
-        }
-        .buttonStyle(PremiumButton(color: .purple))
-    }
-    
-    // MARK: - Helper Functions
-    
-    private func formatTime(_ hours: Double) -> String {
-        let totalMinutes = Int(hours * 60)
-        let h = totalMinutes / 60
-        let m = totalMinutes % 60
-        
-        if h > 0 && m > 0 {
-            return "\(h)h \(m)m"
-        } else if h > 0 {
-            return "\(h)h"
-        } else {
-            return "\(m)m"
-        }
-    }
-    
-    private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
     }
 }
 
 #Preview {
     FastView()
 }
-
