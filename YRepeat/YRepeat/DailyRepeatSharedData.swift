@@ -7,11 +7,23 @@
 
 import Foundation
 
+struct WidgetDailyItem: Codable {
+    let name: String
+    let progress: Double
+    let iconName: String
+    let color: String
+
+    var progressPercentage: Int {
+        return Int(progress * 100)
+    }
+}
+
 struct DailyProgressData: Codable {
     let totalItems: Int
     let completedItems: Int
     let totalProgress: Double
     let lastUpdated: Date
+    let items: [WidgetDailyItem]
 
     var progressPercentage: Int {
         return Int(totalProgress * 100)
@@ -30,13 +42,13 @@ class DailyRepeatSharedData {
         return UserDefaults(suiteName: appGroupIdentifier)
     }
 
-    private static let progressKey = "dailyProgressData"
+    private static let progressKey = "dailyProgressData_v2"
 
     // MARK: - Save Progress
 
-    static func saveProgress(totalItems: Int, completedItems: Int, totalProgress: Double) {
+    static func saveProgress(totalItems: Int, completedItems: Int, totalProgress: Double, items: [WidgetDailyItem] = []) {
         guard let defaults = sharedDefaults else {
-            print("Failed to access shared defaults for widget")
+            print("Widget Error: Failed to access shared defaults group.com.yrepeat.appblocking")
             return
         }
 
@@ -44,7 +56,8 @@ class DailyRepeatSharedData {
             totalItems: totalItems,
             completedItems: completedItems,
             totalProgress: totalProgress,
-            lastUpdated: Date()
+            lastUpdated: Date(),
+            items: items
         )
 
         do {
@@ -52,8 +65,9 @@ class DailyRepeatSharedData {
             let encoded = try encoder.encode(data)
             defaults.set(encoded, forKey: progressKey)
             defaults.synchronize()
+            print("Widget Success: Saved \(items.count) items to shared defaults")
         } catch {
-            print("Failed to save progress data: \(error)")
+            print("Widget Error: Failed to save progress data: \(error)")
         }
     }
 

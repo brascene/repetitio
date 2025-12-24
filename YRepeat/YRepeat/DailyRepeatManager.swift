@@ -8,6 +8,7 @@
 import Foundation
 import Combine
 import UIKit
+import WidgetKit
 internal import CoreData
 
 class DailyRepeatManager: ObservableObject {
@@ -182,6 +183,7 @@ class DailyRepeatManager: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             self?.checkForNewDay()
+            self?.updateWidgetData()
         }
         
         // Also listen for app becoming active
@@ -191,6 +193,7 @@ class DailyRepeatManager: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             self?.checkForNewDay()
+            self?.updateWidgetData()
         }
     }
     
@@ -360,11 +363,25 @@ class DailyRepeatManager: ObservableObject {
     // MARK: - Widget Data
 
     private func updateWidgetData() {
+        let widgetItems = items.map { item in
+            WidgetDailyItem(
+                name: item.name,
+                progress: item.progress,
+                iconName: item.iconName,
+                color: item.color
+            )
+        }
+
         DailyRepeatSharedData.saveProgress(
             totalItems: totalItemsCount,
             completedItems: completedItemsCount,
-            totalProgress: totalProgress
+            totalProgress: totalProgress,
+            items: widgetItems
         )
+        
+        // Reload widget timeline
+        WidgetCenter.shared.reloadAllTimelines()
+        print("✅ Widget data updated and timeline reloaded")
     }
 
     deinit {

@@ -12,6 +12,9 @@
 		C4217B4A2EFC4C3700BEE804 /* ManagedSettings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C4217B492EFC4C3700BEE804 /* ManagedSettings.framework */; };
 		C4217B4C2EFC4C3700BEE804 /* ManagedSettingsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C4217B4B2EFC4C3700BEE804 /* ManagedSettingsUI.framework */; };
 		C4217B542EFC4C3700BEE804 /* YRepeatShieldConfiguration.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C4217B482EFC4C3700BEE804 /* YRepeatShieldConfiguration.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		C4217C082EFC8F1500BEE804 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C4217C072EFC8F1500BEE804 /* WidgetKit.framework */; };
+		C4217C0A2EFC8F1500BEE804 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C4217C092EFC8F1500BEE804 /* SwiftUI.framework */; };
+		C4217C1B2EFC8F1600BEE804 /* YRepeatWidgetExtensionExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C4217C062EFC8F1500BEE804 /* YRepeatWidgetExtensionExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C4C7644C2EA0E474001C0166 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = C4C7644B2EA0E474001C0166 /* Lottie */; };
 /* End PBXBuildFile section */
 
@@ -30,6 +33,13 @@
 			remoteGlobalIDString = C4217B472EFC4C3600BEE804;
 			remoteInfo = YRepeatShieldConfiguration;
 		};
+		C4217C192EFC8F1600BEE804 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C4C763D02E9FC078001C0166 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C4217C052EFC8F1500BEE804;
+			remoteInfo = YRepeatWidgetExtensionExtension;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -41,6 +51,7 @@
 			files = (
 				C4217B542EFC4C3700BEE804 /* YRepeatShieldConfiguration.appex in Embed Foundation Extensions */,
 				C4217B3A2EFC488200BEE804 /* YRepeatDeviceActivityMonitor.appex in Embed Foundation Extensions */,
+				C4217C1B2EFC8F1600BEE804 /* YRepeatWidgetExtensionExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -53,6 +64,9 @@
 		C4217B482EFC4C3700BEE804 /* YRepeatShieldConfiguration.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = YRepeatShieldConfiguration.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		C4217B492EFC4C3700BEE804 /* ManagedSettings.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ManagedSettings.framework; path = System/Library/Frameworks/ManagedSettings.framework; sourceTree = SDKROOT; };
 		C4217B4B2EFC4C3700BEE804 /* ManagedSettingsUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ManagedSettingsUI.framework; path = System/Library/Frameworks/ManagedSettingsUI.framework; sourceTree = SDKROOT; };
+		C4217C062EFC8F1500BEE804 /* YRepeatWidgetExtensionExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = YRepeatWidgetExtensionExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		C4217C072EFC8F1500BEE804 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		C4217C092EFC8F1500BEE804 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		C4C763D82E9FC078001C0166 /* YRepeat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = YRepeat.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -85,6 +99,20 @@
 			);
 			target = C4217B472EFC4C3600BEE804 /* YRepeatShieldConfiguration */;
 		};
+		C4217C1F2EFC8F1600BEE804 /* Exceptions for "YRepeatWidgetExtension" folder in "YRepeatWidgetExtensionExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = C4217C052EFC8F1500BEE804 /* YRepeatWidgetExtensionExtension */;
+		};
+		C4217C292EFC911D00BEE804 /* Exceptions for "YRepeat" folder in "YRepeatWidgetExtensionExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				DailyRepeatSharedData.swift,
+			);
+			target = C4217C052EFC8F1500BEE804 /* YRepeatWidgetExtensionExtension */;
+		};
 		C4C763F12E9FC1EF001C0166 /* Exceptions for "YRepeat" folder in "YRepeat" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -111,12 +139,21 @@
 			path = YRepeatShieldConfiguration;
 			sourceTree = "<group>";
 		};
+		C4217C0B2EFC8F1500BEE804 /* YRepeatWidgetExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C4217C1F2EFC8F1600BEE804 /* Exceptions for "YRepeatWidgetExtension" folder in "YRepeatWidgetExtensionExtension" target */,
+			);
+			path = YRepeatWidgetExtension;
+			sourceTree = "<group>";
+		};
 		C4C763DA2E9FC078001C0166 /* YRepeat */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				C4C763F12E9FC1EF001C0166 /* Exceptions for "YRepeat" folder in "YRepeat" target */,
 				C4217B432EFC49A900BEE804 /* Exceptions for "YRepeat" folder in "YRepeatDeviceActivityMonitor" target */,
 				C4217B5A2EFC4C9200BEE804 /* Exceptions for "YRepeat" folder in "YRepeatShieldConfiguration" target */,
+				C4217C292EFC911D00BEE804 /* Exceptions for "YRepeat" folder in "YRepeatWidgetExtensionExtension" target */,
 			);
 			path = YRepeat;
 			sourceTree = "<group>";
@@ -141,6 +178,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C4217C032EFC8F1500BEE804 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C4217C0A2EFC8F1500BEE804 /* SwiftUI.framework in Frameworks */,
+				C4217C082EFC8F1500BEE804 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C4C763D52E9FC078001C0166 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -158,6 +204,8 @@
 				C4217B312EFC488200BEE804 /* DeviceActivity.framework */,
 				C4217B492EFC4C3700BEE804 /* ManagedSettings.framework */,
 				C4217B4B2EFC4C3700BEE804 /* ManagedSettingsUI.framework */,
+				C4217C072EFC8F1500BEE804 /* WidgetKit.framework */,
+				C4217C092EFC8F1500BEE804 /* SwiftUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -168,6 +216,7 @@
 				C4C763DA2E9FC078001C0166 /* YRepeat */,
 				C4217B332EFC488200BEE804 /* YRepeatDeviceActivityMonitor */,
 				C4217B4D2EFC4C3700BEE804 /* YRepeatShieldConfiguration */,
+				C4217C0B2EFC8F1500BEE804 /* YRepeatWidgetExtension */,
 				C4217B302EFC488200BEE804 /* Frameworks */,
 				C4C763D92E9FC078001C0166 /* Products */,
 			);
@@ -179,6 +228,7 @@
 				C4C763D82E9FC078001C0166 /* YRepeat.app */,
 				C4217B2F2EFC488200BEE804 /* YRepeatDeviceActivityMonitor.appex */,
 				C4217B482EFC4C3700BEE804 /* YRepeatShieldConfiguration.appex */,
+				C4217C062EFC8F1500BEE804 /* YRepeatWidgetExtensionExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -230,6 +280,28 @@
 			productReference = C4217B482EFC4C3700BEE804 /* YRepeatShieldConfiguration.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		C4217C052EFC8F1500BEE804 /* YRepeatWidgetExtensionExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C4217C1C2EFC8F1600BEE804 /* Build configuration list for PBXNativeTarget "YRepeatWidgetExtensionExtension" */;
+			buildPhases = (
+				C4217C022EFC8F1500BEE804 /* Sources */,
+				C4217C032EFC8F1500BEE804 /* Frameworks */,
+				C4217C042EFC8F1500BEE804 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				C4217C0B2EFC8F1500BEE804 /* YRepeatWidgetExtension */,
+			);
+			name = YRepeatWidgetExtensionExtension;
+			packageProductDependencies = (
+			);
+			productName = YRepeatWidgetExtensionExtension;
+			productReference = C4217C062EFC8F1500BEE804 /* YRepeatWidgetExtensionExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		C4C763D72E9FC078001C0166 /* YRepeat */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = C4C763E32E9FC079001C0166 /* Build configuration list for PBXNativeTarget "YRepeat" */;
@@ -244,6 +316,7 @@
 			dependencies = (
 				C4217B392EFC488200BEE804 /* PBXTargetDependency */,
 				C4217B532EFC4C3700BEE804 /* PBXTargetDependency */,
+				C4217C1A2EFC8F1600BEE804 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				C4C763DA2E9FC078001C0166 /* YRepeat */,
@@ -272,6 +345,9 @@
 					C4217B472EFC4C3600BEE804 = {
 						CreatedOnToolsVersion = 26.0.1;
 					};
+					C4217C052EFC8F1500BEE804 = {
+						CreatedOnToolsVersion = 26.0.1;
+					};
 					C4C763D72E9FC078001C0166 = {
 						CreatedOnToolsVersion = 26.0.1;
 					};
@@ -297,6 +373,7 @@
 				C4C763D72E9FC078001C0166 /* YRepeat */,
 				C4217B2E2EFC488200BEE804 /* YRepeatDeviceActivityMonitor */,
 				C4217B472EFC4C3600BEE804 /* YRepeatShieldConfiguration */,
+				C4217C052EFC8F1500BEE804 /* YRepeatWidgetExtensionExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -310,6 +387,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		C4217B462EFC4C3600BEE804 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C4217C042EFC8F1500BEE804 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -340,6 +424,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C4217C022EFC8F1500BEE804 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C4C763D42E9FC078001C0166 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -359,6 +450,11 @@
 			isa = PBXTargetDependency;
 			target = C4217B472EFC4C3600BEE804 /* YRepeatShieldConfiguration */;
 			targetProxy = C4217B522EFC4C3700BEE804 /* PBXContainerItemProxy */;
+		};
+		C4217C1A2EFC8F1600BEE804 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C4217C052EFC8F1500BEE804 /* YRepeatWidgetExtensionExtension */;
+			targetProxy = C4217C192EFC8F1600BEE804 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -472,6 +568,70 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.nodi.ytrepeat.YRepeat.YRepeatShieldConfiguration;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		C4217C1D2EFC8F1600BEE804 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = YRepeatWidgetExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 68V52MUP82;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = YRepeatWidgetExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = YRepeatWidgetExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nodi.ytrepeat.YRepeat.YRepeatWidgetExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C4217C1E2EFC8F1600BEE804 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = YRepeatWidgetExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 68V52MUP82;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = YRepeatWidgetExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = YRepeatWidgetExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nodi.ytrepeat.YRepeat.YRepeatWidgetExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -709,6 +869,15 @@
 			buildConfigurations = (
 				C4217B562EFC4C3700BEE804 /* Debug */,
 				C4217B572EFC4C3700BEE804 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C4217C1C2EFC8F1600BEE804 /* Build configuration list for PBXNativeTarget "YRepeatWidgetExtensionExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C4217C1D2EFC8F1600BEE804 /* Debug */,
+				C4217C1E2EFC8F1600BEE804 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
