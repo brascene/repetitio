@@ -244,8 +244,6 @@ struct HabitCardView: View {
             return "Completed today!"
         } else if habit.currentStreak > 0 {
             return "\(habit.currentStreak) day streak"
-        } else if habit.daysSinceLastCompletion == 1 {
-            return "Streak broken yesterday"
         } else {
             return habit.isGoodHabit ? "Do this today" : "Avoid this today"
         }

@@ -160,23 +160,13 @@ struct ModernDailyCard: View {
             .padding(16)
         }
         .scaleEffect(isPressed ? 0.98 : 1.0)
-        .contextMenu {
-            Button(action: onEdit) {
-                Label("Edit Goal", systemImage: "pencil")
-            }
-            Button(action: onDecrement) {
-                Label("Decrement (-\(item.incrementAmount))", systemImage: "minus.circle")
-            }
-            Button(role: .destructive, action: onDelete) {
-                Label("Delete Goal", systemImage: "trash")
-            }
-        }
         .onLongPressGesture(minimumDuration: 0.5, pressing: { pressing in
             withAnimation(.easeInOut(duration: 0.2)) {
                 isPressed = pressing
             }
         }) {
-           // Context menu handles the action
+            // Long press now directly opens edit
+            onEdit()
         }
     }
     

@@ -6,11 +6,16 @@
 //
 
 import SwiftUI
+import FamilyControls
 
 struct SettingsView: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var appBlockingManager: AppBlockingManager
     @AppStorage("showPlayerTab") private var showPlayerTab = true
     @AppStorage("showFastTab") private var showFastTab = true
+
+    @State private var showAppPicker = false
+    @State private var showTimePicker = false
     
     var body: some View {
         ZStack {
@@ -200,13 +205,143 @@ struct SettingsView: View {
                             }
                         }
                         .padding(.horizontal, 20)
-                        
+
+                        // App Blocking Section
+                        GlassmorphicCard {
+                            VStack(alignment: .leading, spacing: 20) {
+                                // Header
+                                HStack {
+                                    Image(systemName: "lock.shield.fill")
+                                        .font(.system(size: 20, weight: .semibold))
+                                        .foregroundStyle(
+                                            LinearGradient(
+                                                colors: [.red, .orange],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                        )
+                                    Text("App Blocking")
+                                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                                        .foregroundColor(.white)
+                                    Spacer()
+                                }
+
+                                Divider()
+                                    .background(Color.white.opacity(0.2))
+
+                                if !appBlockingManager.isAuthorized {
+                                    // Not authorized - show enable button
+                                    VStack(alignment: .leading, spacing: 12) {
+                                        Text("Focus mode helps you stay productive by blocking distracting apps during your chosen time windows.")
+                                            .font(.system(size: 14))
+                                            .foregroundColor(.white.opacity(0.7))
+
+                                        Button(action: {
+                                            Task {
+                                                await appBlockingManager.requestAuthorization()
+                                            }
+                                        }) {
+                                            Text("Enable App Blocking")
+                                        }
+                                        .buttonStyle(PremiumButton(color: .red, isProminent: true))
+                                    }
+                                } else {
+                                    // Authorized - show configuration options
+                                    VStack(spacing: 16) {
+                                        // Enable/Disable Toggle
+                                        HStack {
+                                            Text("Enable Blocking")
+                                                .font(.system(size: 16, weight: .medium, design: .rounded))
+                                                .foregroundColor(.white)
+                                            Spacer()
+                                            Toggle("", isOn: Binding(
+                                                get: { appBlockingManager.isBlockingEnabled },
+                                                set: { newValue in
+                                                    if newValue {
+                                                        appBlockingManager.applySchedule()
+                                                    } else {
+                                                        appBlockingManager.removeSchedule()
+                                                    }
+                                                }
+                                            ))
+                                            .labelsHidden()
+                                            .tint(.red)
+                                        }
+
+                                        Divider()
+                                            .background(Color.white.opacity(0.2))
+
+                                        // Select Apps Button
+                                        Button(action: {
+                                            showAppPicker = true
+                                        }) {
+                                            HStack {
+                                                VStack(alignment: .leading, spacing: 4) {
+                                                    Text("Select Apps")
+                                                        .font(.system(size: 16, weight: .semibold))
+                                                    Text("\(appBlockingManager.selectedApps.applicationTokens.count) apps whitelisted")
+                                                        .font(.system(size: 13))
+                                                        .opacity(0.7)
+                                                }
+                                                Spacer()
+                                                Image(systemName: "chevron.right")
+                                                    .font(.system(size: 14, weight: .semibold))
+                                                    .opacity(0.5)
+                                            }
+                                            .foregroundColor(.white)
+                                            .padding()
+                                            .background(Color.white.opacity(0.1))
+                                            .cornerRadius(12)
+                                        }
+
+                                        // Set Time Range Button
+                                        Button(action: {
+                                            showTimePicker = true
+                                        }) {
+                                            HStack {
+                                                VStack(alignment: .leading, spacing: 4) {
+                                                    Text("Set Time Range")
+                                                        .font(.system(size: 16, weight: .semibold))
+                                                    Text(timeRangeText)
+                                                        .font(.system(size: 13))
+                                                        .opacity(0.7)
+                                                }
+                                                Spacer()
+                                                Image(systemName: "chevron.right")
+                                                    .font(.system(size: 14, weight: .semibold))
+                                                    .opacity(0.5)
+                                            }
+                                            .foregroundColor(.white)
+                                            .padding()
+                                            .background(Color.white.opacity(0.1))
+                                            .cornerRadius(12)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 20)
+
                         Spacer()
                             .frame(height: 20)
                     }
                 }
             }
         }
+        .sheet(isPresented: $showAppPicker) {
+            AppBlockingPickerView(manager: appBlockingManager)
+        }
+        .sheet(isPresented: $showTimePicker) {
+            AppBlockingTimePickerView(manager: appBlockingManager)
+        }
+    }
+
+    private var timeRangeText: String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        let start = formatter.string(from: appBlockingManager.startTime)
+        let end = formatter.string(from: appBlockingManager.endTime)
+        return "\(start) - \(end)"
     }
     
     // MARK: - Header View

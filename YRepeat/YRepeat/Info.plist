@@ -31,5 +31,7 @@
 	</dict>
 	<key>NSUserNotificationsUsageDescription</key>
 	<string>We need permission to send you medication reminders</string>
+	<key>NSFamilyControlsUsageDescription</key>
+	<string>YRepeat uses Family Controls to help you stay focused by blocking distracting apps during your chosen time windows.</string>
 </dict>
 </plist>

@@ -30,7 +30,9 @@ struct Habit: Identifiable {
         guard let lastDate = lastCompletedDate else {
             return Int.max // Never completed
         }
-        let days = Calendar.current.dateComponents([.day], from: lastDate, to: Date()).day ?? 0
+        let lastDay = Calendar.current.startOfDay(for: lastDate)
+        let today = Calendar.current.startOfDay(for: Date())
+        let days = Calendar.current.dateComponents([.day], from: lastDay, to: today).day ?? 0
         return days
     }
     
@@ -38,7 +40,7 @@ struct Habit: Identifiable {
         if isActiveToday {
             return .active
         } else if daysSinceLastCompletion == 1 {
-            return .broken
+            return .pending
         } else {
             return .inactive
         }
@@ -47,7 +49,7 @@ struct Habit: Identifiable {
 
 enum StreakStatus {
     case active
-    case broken
+    case pending
     case inactive
 }
 
@@ -186,23 +188,33 @@ class HabitManager: ObservableObject {
     }
     
     func checkDailyStreaks() {
-        let today = Calendar.current.startOfDay(for: Date())
+        let fetchRequest: NSFetchRequest<HabitEntity> = HabitEntity.fetchRequest()
         
-        for habit in habits {
-            guard let entity = getHabitEntity(for: habit.id),
-                  let lastDate = entity.lastCompletedDate else { continue }
+        do {
+            let entities = try context.fetch(fetchRequest)
+            let today = Calendar.current.startOfDay(for: Date())
+            var hasChanges = false
             
-            let lastCompletedDay = Calendar.current.startOfDay(for: lastDate)
-            let daysSince = Calendar.current.dateComponents([.day], from: lastCompletedDay, to: today).day ?? 0
-            
-            // If streak is broken (more than 1 day since last completion)
-            if daysSince > 1 && entity.currentStreak > 0 {
-                entity.currentStreak = 0
-                try? context.save()
+            for entity in entities {
+                guard let lastDate = entity.lastCompletedDate else { continue }
+                
+                let lastCompletedDay = Calendar.current.startOfDay(for: lastDate)
+                let daysSince = Calendar.current.dateComponents([.day], from: lastCompletedDay, to: today).day ?? 0
+                
+                // If streak is broken (more than 1 day since last completion)
+                if daysSince > 1 && entity.currentStreak > 0 {
+                    entity.currentStreak = 0
+                    hasChanges = true
+                }
             }
+            
+            if hasChanges {
+                try context.save()
+                loadHabits()
+            }
+        } catch {
+            print("Failed to check daily streaks: \(error)")
         }
-        
-        loadHabits()
     }
     
     // MARK: - Persistence

@@ -7,14 +7,84 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C4217B322EFC488200BEE804 /* DeviceActivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C4217B312EFC488200BEE804 /* DeviceActivity.framework */; };
+		C4217B3A2EFC488200BEE804 /* YRepeatDeviceActivityMonitor.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C4217B2F2EFC488200BEE804 /* YRepeatDeviceActivityMonitor.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		C4217B4A2EFC4C3700BEE804 /* ManagedSettings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C4217B492EFC4C3700BEE804 /* ManagedSettings.framework */; };
+		C4217B4C2EFC4C3700BEE804 /* ManagedSettingsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C4217B4B2EFC4C3700BEE804 /* ManagedSettingsUI.framework */; };
+		C4217B542EFC4C3700BEE804 /* YRepeatShieldConfiguration.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C4217B482EFC4C3700BEE804 /* YRepeatShieldConfiguration.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C4C7644C2EA0E474001C0166 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = C4C7644B2EA0E474001C0166 /* Lottie */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		C4217B382EFC488200BEE804 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C4C763D02E9FC078001C0166 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C4217B2E2EFC488200BEE804;
+			remoteInfo = YRepeatDeviceActivityMonitor;
+		};
+		C4217B522EFC4C3700BEE804 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C4C763D02E9FC078001C0166 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C4217B472EFC4C3600BEE804;
+			remoteInfo = YRepeatShieldConfiguration;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		C4217B3F2EFC488200BEE804 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				C4217B542EFC4C3700BEE804 /* YRepeatShieldConfiguration.appex in Embed Foundation Extensions */,
+				C4217B3A2EFC488200BEE804 /* YRepeatDeviceActivityMonitor.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		C4217B2F2EFC488200BEE804 /* YRepeatDeviceActivityMonitor.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = YRepeatDeviceActivityMonitor.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		C4217B312EFC488200BEE804 /* DeviceActivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DeviceActivity.framework; path = System/Library/Frameworks/DeviceActivity.framework; sourceTree = SDKROOT; };
+		C4217B482EFC4C3700BEE804 /* YRepeatShieldConfiguration.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = YRepeatShieldConfiguration.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		C4217B492EFC4C3700BEE804 /* ManagedSettings.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ManagedSettings.framework; path = System/Library/Frameworks/ManagedSettings.framework; sourceTree = SDKROOT; };
+		C4217B4B2EFC4C3700BEE804 /* ManagedSettingsUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ManagedSettingsUI.framework; path = System/Library/Frameworks/ManagedSettingsUI.framework; sourceTree = SDKROOT; };
 		C4C763D82E9FC078001C0166 /* YRepeat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = YRepeat.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		C4217B3E2EFC488200BEE804 /* Exceptions for "YRepeatDeviceActivityMonitor" folder in "YRepeatDeviceActivityMonitor" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = C4217B2E2EFC488200BEE804 /* YRepeatDeviceActivityMonitor */;
+		};
+		C4217B432EFC49A900BEE804 /* Exceptions for "YRepeat" folder in "YRepeatDeviceActivityMonitor" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				AppBlockingSharedStorage.swift,
+			);
+			target = C4217B2E2EFC488200BEE804 /* YRepeatDeviceActivityMonitor */;
+		};
+		C4217B582EFC4C3700BEE804 /* Exceptions for "YRepeatShieldConfiguration" folder in "YRepeatShieldConfiguration" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = C4217B472EFC4C3600BEE804 /* YRepeatShieldConfiguration */;
+		};
+		C4217B5A2EFC4C9200BEE804 /* Exceptions for "YRepeat" folder in "YRepeatShieldConfiguration" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				AppBlockingSharedStorage.swift,
+			);
+			target = C4217B472EFC4C3600BEE804 /* YRepeatShieldConfiguration */;
+		};
 		C4C763F12E9FC1EF001C0166 /* Exceptions for "YRepeat" folder in "YRepeat" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -25,10 +95,28 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		C4217B332EFC488200BEE804 /* YRepeatDeviceActivityMonitor */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C4217B3E2EFC488200BEE804 /* Exceptions for "YRepeatDeviceActivityMonitor" folder in "YRepeatDeviceActivityMonitor" target */,
+			);
+			path = YRepeatDeviceActivityMonitor;
+			sourceTree = "<group>";
+		};
+		C4217B4D2EFC4C3700BEE804 /* YRepeatShieldConfiguration */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C4217B582EFC4C3700BEE804 /* Exceptions for "YRepeatShieldConfiguration" folder in "YRepeatShieldConfiguration" target */,
+			);
+			path = YRepeatShieldConfiguration;
+			sourceTree = "<group>";
+		};
 		C4C763DA2E9FC078001C0166 /* YRepeat */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				C4C763F12E9FC1EF001C0166 /* Exceptions for "YRepeat" folder in "YRepeat" target */,
+				C4217B432EFC49A900BEE804 /* Exceptions for "YRepeat" folder in "YRepeatDeviceActivityMonitor" target */,
+				C4217B5A2EFC4C9200BEE804 /* Exceptions for "YRepeat" folder in "YRepeatShieldConfiguration" target */,
 			);
 			path = YRepeat;
 			sourceTree = "<group>";
@@ -36,6 +124,23 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		C4217B2C2EFC488200BEE804 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C4217B322EFC488200BEE804 /* DeviceActivity.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C4217B452EFC4C3600BEE804 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C4217B4A2EFC4C3700BEE804 /* ManagedSettings.framework in Frameworks */,
+				C4217B4C2EFC4C3700BEE804 /* ManagedSettingsUI.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C4C763D52E9FC078001C0166 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -47,10 +152,23 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		C4217B302EFC488200BEE804 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				C4217B312EFC488200BEE804 /* DeviceActivity.framework */,
+				C4217B492EFC4C3700BEE804 /* ManagedSettings.framework */,
+				C4217B4B2EFC4C3700BEE804 /* ManagedSettingsUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		C4C763CF2E9FC078001C0166 = {
 			isa = PBXGroup;
 			children = (
 				C4C763DA2E9FC078001C0166 /* YRepeat */,
+				C4217B332EFC488200BEE804 /* YRepeatDeviceActivityMonitor */,
+				C4217B4D2EFC4C3700BEE804 /* YRepeatShieldConfiguration */,
+				C4217B302EFC488200BEE804 /* Frameworks */,
 				C4C763D92E9FC078001C0166 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -59,6 +177,8 @@
 			isa = PBXGroup;
 			children = (
 				C4C763D82E9FC078001C0166 /* YRepeat.app */,
+				C4217B2F2EFC488200BEE804 /* YRepeatDeviceActivityMonitor.appex */,
+				C4217B482EFC4C3700BEE804 /* YRepeatShieldConfiguration.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -66,6 +186,50 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		C4217B2E2EFC488200BEE804 /* YRepeatDeviceActivityMonitor */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C4217B3B2EFC488200BEE804 /* Build configuration list for PBXNativeTarget "YRepeatDeviceActivityMonitor" */;
+			buildPhases = (
+				C4217B2B2EFC488200BEE804 /* Sources */,
+				C4217B2C2EFC488200BEE804 /* Frameworks */,
+				C4217B2D2EFC488200BEE804 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				C4217B332EFC488200BEE804 /* YRepeatDeviceActivityMonitor */,
+			);
+			name = YRepeatDeviceActivityMonitor;
+			packageProductDependencies = (
+			);
+			productName = YRepeatDeviceActivityMonitor;
+			productReference = C4217B2F2EFC488200BEE804 /* YRepeatDeviceActivityMonitor.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		C4217B472EFC4C3600BEE804 /* YRepeatShieldConfiguration */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C4217B552EFC4C3700BEE804 /* Build configuration list for PBXNativeTarget "YRepeatShieldConfiguration" */;
+			buildPhases = (
+				C4217B442EFC4C3600BEE804 /* Sources */,
+				C4217B452EFC4C3600BEE804 /* Frameworks */,
+				C4217B462EFC4C3600BEE804 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				C4217B4D2EFC4C3700BEE804 /* YRepeatShieldConfiguration */,
+			);
+			name = YRepeatShieldConfiguration;
+			packageProductDependencies = (
+			);
+			productName = YRepeatShieldConfiguration;
+			productReference = C4217B482EFC4C3700BEE804 /* YRepeatShieldConfiguration.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		C4C763D72E9FC078001C0166 /* YRepeat */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = C4C763E32E9FC079001C0166 /* Build configuration list for PBXNativeTarget "YRepeat" */;
@@ -73,10 +237,13 @@
 				C4C763D42E9FC078001C0166 /* Sources */,
 				C4C763D52E9FC078001C0166 /* Frameworks */,
 				C4C763D62E9FC078001C0166 /* Resources */,
+				C4217B3F2EFC488200BEE804 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				C4217B392EFC488200BEE804 /* PBXTargetDependency */,
+				C4217B532EFC4C3700BEE804 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				C4C763DA2E9FC078001C0166 /* YRepeat */,
@@ -99,6 +266,12 @@
 				LastSwiftUpdateCheck = 2600;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
+					C4217B2E2EFC488200BEE804 = {
+						CreatedOnToolsVersion = 26.0.1;
+					};
+					C4217B472EFC4C3600BEE804 = {
+						CreatedOnToolsVersion = 26.0.1;
+					};
 					C4C763D72E9FC078001C0166 = {
 						CreatedOnToolsVersion = 26.0.1;
 					};
@@ -122,11 +295,27 @@
 			projectRoot = "";
 			targets = (
 				C4C763D72E9FC078001C0166 /* YRepeat */,
+				C4217B2E2EFC488200BEE804 /* YRepeatDeviceActivityMonitor */,
+				C4217B472EFC4C3600BEE804 /* YRepeatShieldConfiguration */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		C4217B2D2EFC488200BEE804 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C4217B462EFC4C3600BEE804 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C4C763D62E9FC078001C0166 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -137,6 +326,20 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		C4217B2B2EFC488200BEE804 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C4217B442EFC4C3600BEE804 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C4C763D42E9FC078001C0166 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -146,7 +349,140 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		C4217B392EFC488200BEE804 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C4217B2E2EFC488200BEE804 /* YRepeatDeviceActivityMonitor */;
+			targetProxy = C4217B382EFC488200BEE804 /* PBXContainerItemProxy */;
+		};
+		C4217B532EFC4C3700BEE804 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C4217B472EFC4C3600BEE804 /* YRepeatShieldConfiguration */;
+			targetProxy = C4217B522EFC4C3700BEE804 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		C4217B3C2EFC488200BEE804 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = YRepeatDeviceActivityMonitor/YRepeatDeviceActivityMonitor.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 68V52MUP82;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = YRepeatDeviceActivityMonitor/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = YRepeatDeviceActivityMonitor;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nodi.ytrepeat.YRepeat.YRepeatDeviceActivityMonitor;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C4217B3D2EFC488200BEE804 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = YRepeatDeviceActivityMonitor/YRepeatDeviceActivityMonitor.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 68V52MUP82;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = YRepeatDeviceActivityMonitor/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = YRepeatDeviceActivityMonitor;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nodi.ytrepeat.YRepeat.YRepeatDeviceActivityMonitor;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		C4217B562EFC4C3700BEE804 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = YRepeatShieldConfiguration/YRepeatShieldConfiguration.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 68V52MUP82;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = YRepeatShieldConfiguration/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = YRepeatShieldConfiguration;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nodi.ytrepeat.YRepeat.YRepeatShieldConfiguration;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C4217B572EFC4C3700BEE804 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = YRepeatShieldConfiguration/YRepeatShieldConfiguration.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 68V52MUP82;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = YRepeatShieldConfiguration/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = YRepeatShieldConfiguration;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nodi.ytrepeat.YRepeat.YRepeatShieldConfiguration;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		C4C763E12E9FC079001C0166 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -359,6 +695,24 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		C4217B3B2EFC488200BEE804 /* Build configuration list for PBXNativeTarget "YRepeatDeviceActivityMonitor" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C4217B3C2EFC488200BEE804 /* Debug */,
+				C4217B3D2EFC488200BEE804 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C4217B552EFC4C3700BEE804 /* Build configuration list for PBXNativeTarget "YRepeatShieldConfiguration" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C4217B562EFC4C3700BEE804 /* Debug */,
+				C4217B572EFC4C3700BEE804 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		C4C763D32E9FC078001C0166 /* Build configuration list for PBXProject "YRepeat" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

@@ -22,6 +22,8 @@ struct DailyRepeatView: View {
     @State private var showingResetConfirmation = false
     @State private var selectedSegment: DailySegment = .daily
     @State private var showingClearHistoryAlert = false
+    @State private var itemToDelete: DailyRepeatItem?
+    @State private var showingDeleteConfirmation = false
     
     var body: some View {
         ZStack {
@@ -92,6 +94,21 @@ struct DailyRepeatView: View {
             }
         } message: {
             Text("Are you sure you want to delete all \(manager.taskHistory.count) completed tasks?")
+        }
+        .alert("Delete Goal", isPresented: $showingDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                if let item = itemToDelete {
+                    withAnimation {
+                        manager.deleteItem(item)
+                    }
+                    itemToDelete = nil
+                }
+            }
+        } message: {
+            if let item = itemToDelete {
+                Text("Are you sure you want to delete '\(item.name)'? This action cannot be undone.")
+            }
         }
     }
     
@@ -186,39 +203,55 @@ struct DailyRepeatView: View {
     // MARK: - Content View
     
     private var contentView: some View {
-        ScrollView(showsIndicators: false) {
-            LazyVStack(spacing: 16) {
-                ForEach(manager.items) { item in
-                    ModernDailyCard(
-                        item: item,
-                        onTap: {
-                            let wasCompleted = item.isCompleted
-                            manager.incrementItem(item)
-                            
-                            // Check if goal was just completed
-                            if !wasCompleted && manager.items.first(where: { $0.id == item.id })?.isCompleted == true {
-                                completedGoalName = item.name
-                                showingCelebration = true
-                            }
-                        },
-                        onDecrement: {
-                            manager.decrementItem(item)
-                        },
-                        onEdit: {
-                            print("Edit tapped for item: \(item.name) with ID: \(item.id)")
-                            selectedItem = item
-                        },
-                        onDelete: {
-                            withAnimation {
-                                manager.deleteItem(item)
-                            }
+        List {
+            ForEach(manager.items) { item in
+                ModernDailyCard(
+                    item: item,
+                    onTap: {
+                        let wasCompleted = item.isCompleted
+                        manager.incrementItem(item)
+
+                        // Check if goal was just completed
+                        if !wasCompleted && manager.items.first(where: { $0.id == item.id })?.isCompleted == true {
+                            completedGoalName = item.name
+                            showingCelebration = true
                         }
-                    )
+                    },
+                    onDecrement: {
+                        manager.decrementItem(item)
+                    },
+                    onEdit: {
+                        print("Edit tapped for item: \(item.name) with ID: \(item.id)")
+                        selectedItem = item
+                    },
+                    onDelete: {
+                        itemToDelete = item
+                        showingDeleteConfirmation = true
+                    }
+                )
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+                .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    Button(role: .destructive) {
+                        itemToDelete = item
+                        showingDeleteConfirmation = true
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+
+                    Button {
+                        manager.decrementItem(item)
+                    } label: {
+                        Label("Decrement", systemImage: "minus.circle")
+                    }
+                    .tint(.orange)
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 20)
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(Color.clear)
     }
     
     // MARK: - Empty State

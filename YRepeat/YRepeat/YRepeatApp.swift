@@ -12,17 +12,19 @@ internal import CoreData
 struct YRepeatApp: App {
     @StateObject private var dataController = PersistenceController()
     @StateObject private var themeManager = ThemeManager()
-    
+    @StateObject private var appBlockingManager = AppBlockingManager()
+
     init() {
         // Migrate data from UserDefaults to Core Data on app launch
         DataMigrationManager.shared.migrateDataIfNeeded()
     }
-    
+
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(\.managedObjectContext, dataController.container.viewContext)
                 .environmentObject(themeManager)
+                .environmentObject(appBlockingManager)
         }
     }
 }
