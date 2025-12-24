@@ -5,6 +5,7 @@
 //  Created for App Blocking feature
 //
 
+#if DEBUG
 import Foundation
 import Combine
 import FamilyControls
@@ -170,3 +171,16 @@ class AppBlockingManager: ObservableObject {
         AppBlockingSharedStorage.saveTimeRange(startTime: startTime, endTime: endTime)
     }
 }
+
+#else
+// Stub implementation for Release builds
+import Foundation
+import Combine
+
+class AppBlockingManager: ObservableObject {
+    @Published var isAuthorized: Bool = false
+    @Published var isBlockingEnabled: Bool = false
+
+    init() {}
+}
+#endif

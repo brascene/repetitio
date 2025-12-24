@@ -5,6 +5,7 @@
 //  Created for App Blocking feature
 //
 
+#if DEBUG
 import SwiftUI
 
 struct AppBlockingTimePickerView: View {
@@ -158,3 +159,4 @@ struct AppBlockingTimePickerView: View {
         return "Blocking: \(start) - \(end)"
     }
 }
+#endif

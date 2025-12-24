@@ -5,6 +5,7 @@
 //  Created for App Blocking feature
 //
 
+#if DEBUG
 import SwiftUI
 import FamilyControls
 
@@ -89,3 +90,4 @@ struct AppBlockingPickerView: View {
         }
     }
 }
+#endif

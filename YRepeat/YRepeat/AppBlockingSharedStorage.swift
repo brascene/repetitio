@@ -5,6 +5,7 @@
 //  Created for App Blocking feature - Shared between app and extension
 //
 
+#if DEBUG
 import Foundation
 import FamilyControls
 
@@ -103,3 +104,4 @@ class AppBlockingSharedStorage {
         return (startTime, endTime)
     }
 }
+#endif

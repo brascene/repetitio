@@ -6,16 +6,19 @@
 //
 
 import SwiftUI
+#if DEBUG
 import FamilyControls
+#endif
 
 struct SettingsView: View {
     @EnvironmentObject var themeManager: ThemeManager
+    #if DEBUG
     @EnvironmentObject var appBlockingManager: AppBlockingManager
-    @AppStorage("showPlayerTab") private var showPlayerTab = true
-    @AppStorage("showFastTab") private var showFastTab = true
-
     @State private var showAppPicker = false
     @State private var showTimePicker = false
+    #endif
+    @AppStorage("showPlayerTab") private var showPlayerTab = true
+    @AppStorage("showFastTab") private var showFastTab = true
     
     var body: some View {
         ZStack {
@@ -206,7 +209,8 @@ struct SettingsView: View {
                         }
                         .padding(.horizontal, 20)
 
-                        // App Blocking Section
+                        #if DEBUG
+                        // App Blocking Section (Development Only)
                         GlassmorphicCard {
                             VStack(alignment: .leading, spacing: 20) {
                                 // Header
@@ -321,6 +325,7 @@ struct SettingsView: View {
                             }
                         }
                         .padding(.horizontal, 20)
+                        #endif
 
                         Spacer()
                             .frame(height: 20)
@@ -328,14 +333,17 @@ struct SettingsView: View {
                 }
             }
         }
+        #if DEBUG
         .sheet(isPresented: $showAppPicker) {
             AppBlockingPickerView(manager: appBlockingManager)
         }
         .sheet(isPresented: $showTimePicker) {
             AppBlockingTimePickerView(manager: appBlockingManager)
         }
+        #endif
     }
 
+    #if DEBUG
     private var timeRangeText: String {
         let formatter = DateFormatter()
         formatter.timeStyle = .short
@@ -343,7 +351,8 @@ struct SettingsView: View {
         let end = formatter.string(from: appBlockingManager.endTime)
         return "\(start) - \(end)"
     }
-    
+    #endif
+
     // MARK: - Header View
     
     private var headerView: some View {
