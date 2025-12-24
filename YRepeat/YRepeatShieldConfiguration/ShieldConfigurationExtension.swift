@@ -5,6 +5,7 @@
 //  Created by Dino Pelic on 24. 12. 2025..
 //
 
+#if DEBUG
 import ManagedSettings
 import ManagedSettingsUI
 import UIKit
@@ -67,3 +68,4 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
         return createCustomShield(for: webDomain.domain)
     }
 }
+#endif

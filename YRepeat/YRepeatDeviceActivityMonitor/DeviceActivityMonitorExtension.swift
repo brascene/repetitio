@@ -5,6 +5,7 @@
 //  Created by Dino Pelic on 24. 12. 2025..
 //
 
+#if DEBUG
 import DeviceActivity
 import ManagedSettings
 import FamilyControls
@@ -49,3 +50,4 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         store.clearAllSettings()
     }
 }
+#endif
