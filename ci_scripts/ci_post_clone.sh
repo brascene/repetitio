@@ -48,10 +48,19 @@ if [ "$CI_XCODE_CONFIGURATION" != "Debug" ]; then
         echo "  🗑️  Removing YRepeatShieldConfiguration from Embed Foundation Extensions"
         sed -i.bak '/YRepeatShieldConfiguration\.appex in Embed Foundation Extensions/d' "$PROJECT_FILE"
 
+        # ALSO remove the Target Dependencies so they are not built at all
+        # C4217B392EFC488200BEE804 is PBXTargetDependency for YRepeatDeviceActivityMonitor
+        echo "  🗑️  Removing YRepeatDeviceActivityMonitor target dependency"
+        sed -i.bak '/C4217B392EFC488200BEE804.*,/d' "$PROJECT_FILE"
+
+        # C4217B532EFC4C3700BEE804 is PBXTargetDependency for YRepeatShieldConfiguration
+        echo "  🗑️  Removing YRepeatShieldConfiguration target dependency"
+        sed -i.bak '/C4217B532EFC4C3700BEE804.*,/d' "$PROJECT_FILE"
+
         # Clean up sed backup files
         rm -f "$PROJECT_FILE.bak"
 
-        echo "  ✅ Extensions removed from Embed Foundation Extensions phase"
+        echo "  ✅ Extensions removed from Embed Foundation Extensions phase and Target Dependencies"
     fi
 
     echo "✅ Successfully removed App Blocking components for Release build"
