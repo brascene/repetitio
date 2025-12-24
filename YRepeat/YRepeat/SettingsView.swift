@@ -19,6 +19,13 @@ struct SettingsView: View {
     #endif
     @AppStorage("showPlayerTab") private var showPlayerTab = true
     @AppStorage("showFastTab") private var showFastTab = true
+
+    // Expandable sections state
+    @State private var appearanceExpanded = false
+    @State private var tabVisibilityExpanded = false
+    #if DEBUG
+    @State private var appBlockingExpanded = false
+    #endif
     
     var body: some View {
         ZStack {
@@ -35,26 +42,41 @@ struct SettingsView: View {
                         // Appearance Section
                         GlassmorphicCard {
                             VStack(alignment: .leading, spacing: 20) {
-                                HStack {
-                                    Image(systemName: "paintpalette.fill")
-                                        .font(.system(size: 20, weight: .semibold))
-                                        .foregroundStyle(
-                                            LinearGradient(
-                                                colors: [.pink, .orange],
-                                                startPoint: .topLeading,
-                                                endPoint: .bottomTrailing
+                                // Tappable Header
+                                Button(action: {
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                        appearanceExpanded.toggle()
+                                    }
+                                }) {
+                                    HStack {
+                                        Image(systemName: "paintpalette.fill")
+                                            .font(.system(size: 20, weight: .semibold))
+                                            .foregroundStyle(
+                                                LinearGradient(
+                                                    colors: [.pink, .orange],
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                )
                                             )
-                                        )
-                                    
-                                    Text("Appearance")
-                                        .font(.system(size: 20, weight: .bold, design: .rounded))
-                                        .foregroundColor(.white)
-                                    
-                                    Spacer()
+
+                                        Text("Appearance")
+                                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                                            .foregroundColor(.white)
+
+                                        Spacer()
+
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundColor(.white.opacity(0.6))
+                                            .rotationEffect(.degrees(appearanceExpanded ? 90 : 0))
+                                    }
+                                    .contentShape(Rectangle())
                                 }
-                                
-                                Divider()
-                                    .background(Color.white.opacity(0.2))
+                                .buttonStyle(PlainButtonStyle())
+
+                                if appearanceExpanded {
+                                    Divider()
+                                        .background(Color.white.opacity(0.2))
                                 
                                 // Gradient Mode Toggle
                                 HStack {
@@ -126,34 +148,50 @@ struct SettingsView: View {
                                         }
                                     }
                                 }
+                                }
                             }
                         }
                         .padding(.horizontal, 20)
                         .padding(.top, 20)
-                        
+
                         // Tab Visibility Section
                         GlassmorphicCard {
                             VStack(alignment: .leading, spacing: 20) {
-                                HStack {
-                                    Image(systemName: "eye.fill")
-                                        .font(.system(size: 20, weight: .semibold))
-                                        .foregroundStyle(
-                                            LinearGradient(
-                                                colors: [.blue, .purple],
-                                                startPoint: .topLeading,
-                                                endPoint: .bottomTrailing
+                                // Tappable Header
+                                Button(action: {
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                        tabVisibilityExpanded.toggle()
+                                    }
+                                }) {
+                                    HStack {
+                                        Image(systemName: "eye.fill")
+                                            .font(.system(size: 20, weight: .semibold))
+                                            .foregroundStyle(
+                                                LinearGradient(
+                                                    colors: [.blue, .purple],
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                )
                                             )
-                                        )
-                                    
-                                    Text("Tab Visibility")
-                                        .font(.system(size: 20, weight: .bold, design: .rounded))
-                                        .foregroundColor(.white)
-                                    
-                                    Spacer()
+
+                                        Text("Tab Visibility")
+                                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                                            .foregroundColor(.white)
+
+                                        Spacer()
+
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundColor(.white.opacity(0.6))
+                                            .rotationEffect(.degrees(tabVisibilityExpanded ? 90 : 0))
+                                    }
+                                    .contentShape(Rectangle())
                                 }
-                                
-                                Divider()
-                                    .background(Color.white.opacity(0.2))
+                                .buttonStyle(PlainButtonStyle())
+
+                                if tabVisibilityExpanded {
+                                    Divider()
+                                        .background(Color.white.opacity(0.2))
                                 
                                 // Player Tab Toggle
                                 HStack {
@@ -205,6 +243,7 @@ struct SettingsView: View {
                                         .labelsHidden()
                                         .tint(.purple)
                                 }
+                                }
                             }
                         }
                         .padding(.horizontal, 20)
@@ -213,25 +252,39 @@ struct SettingsView: View {
                         // App Blocking Section (Development Only)
                         GlassmorphicCard {
                             VStack(alignment: .leading, spacing: 20) {
-                                // Header
-                                HStack {
-                                    Image(systemName: "lock.shield.fill")
-                                        .font(.system(size: 20, weight: .semibold))
-                                        .foregroundStyle(
-                                            LinearGradient(
-                                                colors: [.red, .orange],
-                                                startPoint: .topLeading,
-                                                endPoint: .bottomTrailing
+                                // Tappable Header
+                                Button(action: {
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                        appBlockingExpanded.toggle()
+                                    }
+                                }) {
+                                    HStack {
+                                        Image(systemName: "lock.shield.fill")
+                                            .font(.system(size: 20, weight: .semibold))
+                                            .foregroundStyle(
+                                                LinearGradient(
+                                                    colors: [.red, .orange],
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                )
                                             )
-                                        )
-                                    Text("App Blocking")
-                                        .font(.system(size: 20, weight: .bold, design: .rounded))
-                                        .foregroundColor(.white)
-                                    Spacer()
-                                }
+                                        Text("App Blocking")
+                                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                                            .foregroundColor(.white)
+                                        Spacer()
 
-                                Divider()
-                                    .background(Color.white.opacity(0.2))
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundColor(.white.opacity(0.6))
+                                            .rotationEffect(.degrees(appBlockingExpanded ? 90 : 0))
+                                    }
+                                    .contentShape(Rectangle())
+                                }
+                                .buttonStyle(PlainButtonStyle())
+
+                                if appBlockingExpanded {
+                                    Divider()
+                                        .background(Color.white.opacity(0.2))
 
                                 if !appBlockingManager.isAuthorized {
                                     // Not authorized - show enable button
@@ -321,6 +374,7 @@ struct SettingsView: View {
                                             .cornerRadius(12)
                                         }
                                     }
+                                }
                                 }
                             }
                         }

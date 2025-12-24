@@ -419,7 +419,7 @@ class FastManager: ObservableObject {
     func deleteAllFasts() {
         let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "FastEntity")
         let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
-        
+
         do {
             try context.execute(deleteRequest)
             try context.save()
@@ -428,13 +428,33 @@ class FastManager: ObservableObject {
             print("Failed to delete all fasts: \(error.localizedDescription)")
         }
     }
+
+    func updateStartTime(_ fast: Fast, newStartTime: Date) {
+        guard let entity = getFastEntity(for: fast.id) else { return }
+        entity.setValue(newStartTime, forKey: "startTime")
+
+        do {
+            try context.save()
+
+            // Force reload on main thread with explicit notification
+            DispatchQueue.main.async { [weak self] in
+                self?.loadFasts()
+                self?.objectWillChange.send()
+            }
+        } catch {
+            print("Failed to update start time: \(error.localizedDescription)")
+        }
+    }
     
     // MARK: - Core Data Helpers
     
     private func loadFasts() {
+        // Refresh the context to ensure we get the latest data
+        context.refreshAllObjects()
+
         let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "FastEntity")
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
-        
+
         do {
             let entities = try context.fetch(fetchRequest)
             

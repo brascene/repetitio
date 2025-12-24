@@ -47,6 +47,7 @@ struct FastView: View {
                             if let fast = manager.activeFast {
                                 activeFastView(fast: fast)
                                     .transition(.move(edge: .trailing).combined(with: .opacity))
+                                    .id("\(fast.id.uuidString)-\(fast.startTime.timeIntervalSince1970)")
                             } else {
                                 emptyStateView
                                     .transition(.opacity)
@@ -119,7 +120,7 @@ struct FastView: View {
             fastingPhaseCard(fast: fast)
             
             // Stats
-            FastStatsView(fast: fast)
+            FastStatsView(fast: fast, manager: manager)
                 .padding(.horizontal, 20)
             
             // Action Button

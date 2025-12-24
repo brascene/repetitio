@@ -86,7 +86,8 @@ struct FastCircularProgressView: View {
                         )
                         .minimumScaleFactor(0.5)
                         .padding(.horizontal)
-                    
+                        .animation(.linear(duration: 0.5), value: fast.elapsedHours)
+
                     Text("ELAPSED")
                         .font(.system(size: 14, weight: .bold, design: .rounded))
                         .foregroundColor(.white.opacity(0.6))
@@ -97,6 +98,7 @@ struct FastCircularProgressView: View {
                             .font(.system(size: 12))
                         Text("\(Int(fast.progress * 100))%")
                             .font(.system(size: 16, weight: .semibold, design: .rounded))
+                            .animation(.linear(duration: 0.5), value: fast.progress)
                     }
                     .foregroundColor(progressColor[0])
                     .padding(.horizontal, 12)
@@ -106,6 +108,7 @@ struct FastCircularProgressView: View {
                             .fill(progressColor[0].opacity(0.15))
                     )
                     .padding(.top, 4)
+                    .animation(.linear(duration: 0.5), value: fast.progress)
                 }
             }
             .overlay(

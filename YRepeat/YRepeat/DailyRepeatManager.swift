@@ -313,7 +313,7 @@ class DailyRepeatManager: ObservableObject {
     private func loadItems() {
         let fetchRequest: NSFetchRequest<DailyRepeatItemEntity> = DailyRepeatItemEntity.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \DailyRepeatItemEntity.createdAt, ascending: true)]
-        
+
         do {
             let entities = try context.fetch(fetchRequest)
             items = entities.compactMap { entity in
@@ -323,7 +323,7 @@ class DailyRepeatManager: ObservableObject {
                       let color = entity.color else {
                     return nil
                 }
-                
+
                 return DailyRepeatItem(
                     id: id,
                     name: name,
@@ -336,6 +336,8 @@ class DailyRepeatManager: ObservableObject {
                     lastCompleted: entity.lastCompleted
                 )
             }
+            // Update widget data after loading items
+            updateWidgetData()
         } catch {
             print("Failed to load daily repeat items: \(error)")
             items = []
@@ -345,7 +347,7 @@ class DailyRepeatManager: ObservableObject {
     private func getEntity(for item: DailyRepeatItem) -> DailyRepeatItemEntity? {
         let fetchRequest: NSFetchRequest<DailyRepeatItemEntity> = DailyRepeatItemEntity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", item.id as CVarArg)
-        
+
         do {
             let entities = try context.fetch(fetchRequest)
             return entities.first
@@ -354,7 +356,17 @@ class DailyRepeatManager: ObservableObject {
             return nil
         }
     }
-    
+
+    // MARK: - Widget Data
+
+    private func updateWidgetData() {
+        DailyRepeatSharedData.saveProgress(
+            totalItems: totalItemsCount,
+            completedItems: completedItemsCount,
+            totalProgress: totalProgress
+        )
+    }
+
     deinit {
         timer?.invalidate()
         if let observer = foregroundObserver {
