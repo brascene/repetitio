@@ -7,24 +7,33 @@
 set -e
 
 echo "🔍 CI Post-Clone Script Started"
+echo "Environment: CI=${CI}"
 echo "Configuration: ${CI_XCODE_CONFIGURATION:-Unknown}"
 echo "Workspace Path: $CI_PRIMARY_REPOSITORY_PATH"
 
-# Safety check for local runs
-if [ -z "$CI_XCODE_CONFIGURATION" ]; then
-    echo "⚠️  No CI_XCODE_CONFIGURATION found. Skipping script to protect local project."
+# 1. Safety check: Ensure we are running in CI
+# Xcode Cloud sets CI=TRUE. If not set or not TRUE, we assume local environment.
+if [ "$CI" != "TRUE" ]; then
+    echo "⚠️  Not running in CI environment (CI variable is not TRUE). Skipping script to protect local project."
     exit 0
 fi
 
-if [ "$CI_XCODE_CONFIGURATION" != "Debug" ]; then
-    echo "📦 Release build detected - removing App Blocking extensions and capabilities"
+# 2. Configuration Check
+# If CI_XCODE_CONFIGURATION is "Debug", we skip stripping.
+# If it is "Release", "Unknown", or empty, we PROCEED with stripping to ensure TestFlight builds work.
+if [ "$CI_XCODE_CONFIGURATION" = "Debug" ]; then
+    echo "🛠️  Debug build detected - keeping App Blocking extensions"
+    exit 0
+fi
 
-    # Navigate to project directory
-    cd "$CI_PRIMARY_REPOSITORY_PATH"
+echo "📦 Release (or Unknown) build detected in CI - removing App Blocking extensions and capabilities"
 
-    # --- Entitlements Modification using Python ---
-    echo "🔧 Starting Entitlements Modification..."
-    python3 -c "
+# Navigate to project directory
+cd "$CI_PRIMARY_REPOSITORY_PATH"
+
+# --- Entitlements Modification using Python ---
+echo "🔧 Starting Entitlements Modification..."
+python3 -c "
 import sys
 import plistlib
 import os
@@ -60,15 +69,15 @@ for file_rel_path in entitlement_files:
         print(f'   ⚠️ File not found: {file_rel_path}')
 "
 
-    # --- Project File Modification using Python ---
-    PROJECT_FILE=$(find . -name "project.pbxproj" -path "*/YRepeat.xcodeproj/*" -print -quit)
-    
-    if [ -n "$PROJECT_FILE" ]; then
-        echo "🔧 Found project file at: $PROJECT_FILE"
-        cp "$PROJECT_FILE" "$PROJECT_FILE.backup"
+# --- Project File Modification using Python ---
+PROJECT_FILE=$(find . -name "project.pbxproj" -path "*/YRepeat.xcodeproj/*" -print -quit)
 
-        # Python script to robustly modify the project file
-        python3 -c "
+if [ -n "$PROJECT_FILE" ]; then
+    echo "🔧 Found project file at: $PROJECT_FILE"
+    cp "$PROJECT_FILE" "$PROJECT_FILE.backup"
+
+    # Python script to robustly modify the project file
+    python3 -c "
 import sys
 import re
 
@@ -110,17 +119,13 @@ print(f'   Modified content length: {len(content)}')
 with open(file_path, 'w') as f:
     f.write(content)
 "
-        echo "✅ Project file patched using Python."
-    else
-        echo "⚠️  ERROR: project.pbxproj file not found!"
-        exit 1
-    fi
-
-    echo "✅ Successfully processed App Blocking components for Release build"
+    echo "✅ Project file patched using Python."
 else
-    echo "🛠️  Debug build detected - keeping App Blocking extensions"
+    echo "⚠️  ERROR: project.pbxproj file not found!"
+    exit 1
 fi
+
+echo "✅ Successfully processed App Blocking components for Release build"
 
 echo "✨ CI Post-Clone Script Completed"
 exit 0
-
