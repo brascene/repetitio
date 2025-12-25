@@ -7,12 +7,8 @@
 
 import SwiftUI
 
-enum FastSegment: String, CaseIterable {
-    case current = "Current"
-    case history = "History"
-}
-
 struct FastView: View {
+    var embedded: Bool = false
     @StateObject private var manager = FastManager()
     @State private var showingStartFast = false
     @State private var showingDeleteConfirmation = false
@@ -20,42 +16,59 @@ struct FastView: View {
     @State private var fastToDelete: Fast?
     @State private var selectedFastType: FastType = .sixteenEight
     @State private var customHours: Int = 16
-    @State private var selectedSegment: FastSegment = .current
+    @State private var showingHistory = false
     
     // Animation state
     @State private var animateContent = false
     
     var body: some View {
         ZStack {
-            // Premium gradient background
-            LiquidBackgroundView()
+            // Premium gradient background - only if not embedded
+            if !embedded {
+                LiquidBackgroundView()
+            }
             
             VStack(spacing: 0) {
-                // Header
-                FastHeaderView()
-                    .zIndex(1)
+                // Header - only if not embedded
+                if !embedded {
+                    FastHeaderView()
+                        .zIndex(1)
+                }
                 
                 // Content
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 24) {
-                        // Segmented Control
-                        FastSegmentedControl(selectedSegment: $selectedSegment)
-                            .padding(.horizontal, 20)
-                            .padding(.top, 10)
                         
-                        if selectedSegment == .current {
-                            if let fast = manager.activeFast {
-                                activeFastView(fast: fast)
-                                    .transition(.move(edge: .trailing).combined(with: .opacity))
-                                    .id("\(fast.id.uuidString)-\(fast.startTime.timeIntervalSince1970)")
-                            } else {
-                                emptyStateView
-                                    .transition(.opacity)
-                                    .padding(.top, 40)
+                        // History Button (CTA)
+                        HStack {
+                            Spacer()
+                            Button(action: {
+                                showingHistory = true
+                            }) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "clock.arrow.circlepath")
+                                        .font(.system(size: 14, weight: .semibold))
+                                    Text("History")
+                                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                }
+                                .foregroundColor(.white.opacity(0.8))
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(Color.white.opacity(0.1))
+                                .cornerRadius(20)
                             }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 10)
+                        
+                        if let fast = manager.activeFast {
+                            activeFastView(fast: fast)
+                                .transition(.move(edge: .trailing).combined(with: .opacity))
+                                .id("\(fast.id.uuidString)-\(fast.startTime.timeIntervalSince1970)")
                         } else {
-                            historyView
-                                .transition(.move(edge: .leading).combined(with: .opacity))
+                            emptyStateView
+                                .transition(.opacity)
+                                .padding(.top, 40)
                         }
                     }
                     .padding(.bottom, 100)
@@ -65,6 +78,9 @@ struct FastView: View {
         }
         .sheet(isPresented: $showingStartFast) {
             startFastSheet
+        }
+        .sheet(isPresented: $showingHistory) {
+            FastHistoryView(manager: manager)
         }
         .alert("End Fast", isPresented: $showingDeleteConfirmation) {
             Button("Cancel", role: .cancel) { }
@@ -259,69 +275,6 @@ struct FastView: View {
             return nil
         }
         return allPhases[currentIndex + 1]
-    }
-    
-    // MARK: - History View
-    
-    private var historyView: some View {
-        VStack(spacing: 20) {
-            if manager.fastHistory.isEmpty {
-                emptyHistoryView
-            } else {
-                HStack {
-                    Text("Past Fasts")
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
-                    
-                    Spacer()
-                    
-                    Button {
-                        showingDeleteAllConfirmation = true
-                    } label: {
-                        Text("Clear History")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.red.opacity(0.8))
-                    }
-                }
-                .padding(.horizontal, 24)
-                
-                LazyVStack(spacing: 16) {
-                    ForEach(manager.fastHistory) { fast in
-                        FastHistoryRowView(
-                            fast: fast,
-                            onDelete: {
-                                fastToDelete = fast
-                            }
-                        )
-                        .transition(.scale.combined(with: .opacity))
-                    }
-                }
-                .padding(.horizontal, 20)
-            }
-        }
-    }
-    
-    private var emptyHistoryView: some View {
-        VStack(spacing: 24) {
-            ZStack {
-                Circle()
-                    .fill(Color.white.opacity(0.05))
-                    .frame(width: 100, height: 100)
-                
-                Image(systemName: "clock.arrow.circlepath")
-                    .font(.system(size: 40))
-                    .foregroundColor(.white.opacity(0.4))
-            }
-            .padding(.top, 40)
-            
-            Text("No History Yet")
-                .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundColor(.white)
-            
-            Text("Your completed fasts will appear here.")
-                .font(.system(size: 16))
-                .foregroundColor(.white.opacity(0.6))
-        }
     }
     
     // MARK: - Empty State View

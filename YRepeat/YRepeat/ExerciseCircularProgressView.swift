@@ -1,27 +1,28 @@
 //
-//  FastCircularProgressView.swift
+//  ExerciseCircularProgressView.swift
 //  YRepeat
 //
-//  Created for Fasting feature
+//  Created for Health feature
 //
 
 import SwiftUI
 
-struct FastCircularProgressView: View {
-    let fast: Fast
+struct ExerciseCircularProgressView: View {
+    let currentMinutes: Double
+    let goalMinutes: Double
     
-    private var progressColor: [Color] {
-        switch fast.currentPhase {
-        case .fed, .earlyFasting:
-            return [.blue, .cyan]
-        case .ketosisBegins, .fullKetosis:
-            return [.orange, .red]
-        case .autophagyBegins, .deepAutophagy:
-            return [.purple, .pink]
-        case .growthHormonePeak:
-            return [.yellow, .orange]
-        }
+    private var progress: Double {
+        guard goalMinutes > 0 else { return 0 }
+        return min(currentMinutes / goalMinutes, 1.0)
     }
+    
+    private var percentage: Int {
+        guard goalMinutes > 0 else { return 0 }
+        return Int((currentMinutes / goalMinutes) * 100)
+    }
+    
+    // Green gradient for exercise
+    private let progressColors: [Color] = [.green, .mint]
     
     var body: some View {
         ZStack {
@@ -30,8 +31,8 @@ struct FastCircularProgressView: View {
                 .fill(
                     RadialGradient(
                         colors: [
-                            progressColor[0].opacity(0.2),
-                            progressColor[1].opacity(0.05),
+                            progressColors[0].opacity(0.2),
+                            progressColors[1].opacity(0.05),
                             Color.clear
                         ],
                         center: .center,
@@ -58,10 +59,10 @@ struct FastCircularProgressView: View {
                 
                 // Progress ring
                 Circle()
-                    .trim(from: 0, to: min(1.0, fast.progress))
+                    .trim(from: 0, to: progress)
                     .stroke(
                         AngularGradient(
-                            colors: progressColor + [progressColor[0]],
+                            colors: progressColors + [progressColors[0]],
                             center: .center,
                             startAngle: .degrees(-90),
                             endAngle: .degrees(270)
@@ -70,13 +71,13 @@ struct FastCircularProgressView: View {
                     )
                     .frame(width: 260, height: 260)
                     .rotationEffect(.degrees(-90))
-                    .shadow(color: progressColor[0].opacity(0.5), radius: 10, x: 0, y: 0)
-                    .animation(.linear(duration: 0.5), value: fast.progress)
+                    .shadow(color: progressColors[0].opacity(0.5), radius: 10, x: 0, y: 0)
+                    .animation(.linear(duration: 0.5), value: progress)
                 
                 // Inner content
                 VStack(spacing: 8) {
-                    Text(formatTime(fast.elapsedHours))
-                        .font(.system(size: 48, weight: .bold, design: .rounded))
+                    Text("\(Int(currentMinutes))")
+                        .font(.system(size: 64, weight: .bold, design: .rounded))
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [.white, .white.opacity(0.9)],
@@ -86,29 +87,32 @@ struct FastCircularProgressView: View {
                         )
                         .minimumScaleFactor(0.5)
                         .padding(.horizontal)
-                        .animation(.linear(duration: 0.5), value: fast.elapsedHours)
+                        .animation(.linear(duration: 0.5), value: currentMinutes)
 
-                    Text("ELAPSED")
+                    Text("MINUTES")
                         .font(.system(size: 14, weight: .bold, design: .rounded))
                         .foregroundColor(.white.opacity(0.6))
                         .tracking(2)
                     
+                    Text("THIS WEEK")
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .foregroundColor(.white.opacity(0.4))
+                        .padding(.bottom, 4)
+                    
                     HStack(spacing: 6) {
-                        Image(systemName: "flag.fill")
+                        Image(systemName: "figure.elliptical")
                             .font(.system(size: 12))
-                        Text("\(Int(fast.progress * 100))%")
+                        Text("\(percentage)%")
                             .font(.system(size: 16, weight: .semibold, design: .rounded))
-                            .animation(.linear(duration: 0.5), value: fast.progress)
                     }
-                    .foregroundColor(progressColor[0])
+                    .foregroundColor(progressColors[0])
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .background(
                         Capsule()
-                            .fill(progressColor[0].opacity(0.15))
+                            .fill(progressColors[0].opacity(0.15))
                     )
-                    .padding(.top, 4)
-                    .animation(.linear(duration: 0.5), value: fast.progress)
+                    .animation(.linear(duration: 0.5), value: percentage)
                 }
             }
             .overlay(
@@ -128,13 +132,6 @@ struct FastCircularProgressView: View {
             )
         }
         .padding(.vertical, 20)
-    }
-    
-    private func formatTime(_ hours: Double) -> String {
-        let totalMinutes = Int(hours * 60)
-        let h = totalMinutes / 60
-        let m = totalMinutes % 60
-        return String(format: "%02d:%02d", h, m)
     }
 }
 

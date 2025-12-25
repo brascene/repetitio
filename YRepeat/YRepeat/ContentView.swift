@@ -22,6 +22,7 @@ struct ContentView: View {
     @StateObject private var dailyRepeatManager = DailyRepeatManager()
     @StateObject private var calendarManager = CalendarManager()
     @StateObject private var habitManager = HabitManager()
+    @StateObject private var exerciseManager = ExerciseManager()
 
     @State private var youtubeURL: String = ""
     @SceneStorage("selectedTab") private var selectedTab: Tab = .player
@@ -71,9 +72,10 @@ struct ContentView: View {
                     .tag(Tab.habits)
                 
                 if showFastTab {
-                    FastView()
+                    HealthView()
+                        .environmentObject(exerciseManager)
                         .tabItem {
-                            Label("Fast", systemImage: "moon.stars.fill")
+                            Label("Health", systemImage: "waveform.path.ecg")
                         }
                         .tag(Tab.fast)
                 }

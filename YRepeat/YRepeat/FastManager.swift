@@ -218,7 +218,8 @@ struct Fast: Identifiable {
             // For completed fasts, show 100% if goal was reached
             return elapsedHours >= Double(goalHours) ? 1.0 : min(1.0, elapsedHours / Double(goalHours))
         }
-        return min(1.0, elapsedHours / Double(goalHours))
+        // Allow progress to exceed 1.0 (100%) so the circle stays full and percentage grows
+        return elapsedHours / Double(goalHours)
     }
     
     var isCompleted: Bool {
