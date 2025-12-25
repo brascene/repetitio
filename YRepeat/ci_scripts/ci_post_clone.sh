@@ -12,15 +12,12 @@ echo "Configuration: ${CI_XCODE_CONFIGURATION:-Unknown}"
 echo "Workspace Path: $CI_PRIMARY_REPOSITORY_PATH"
 
 # 1. Safety check: Ensure we are running in CI
-# Xcode Cloud sets CI=TRUE. If not set or not TRUE, we assume local environment.
 if [ "$CI" != "TRUE" ]; then
     echo "⚠️  Not running in CI environment (CI variable is not TRUE). Skipping script to protect local project."
     exit 0
 fi
 
 # 2. Configuration Check
-# If CI_XCODE_CONFIGURATION is "Debug", we skip stripping.
-# If it is "Release", "Unknown", or empty, we PROCEED with stripping to ensure TestFlight builds work.
 if [ "$CI_XCODE_CONFIGURATION" = "Debug" ]; then
     echo "🛠️  Debug build detected - keeping App Blocking extensions"
     exit 0
@@ -33,41 +30,48 @@ cd "$CI_PRIMARY_REPOSITORY_PATH"
 
 # --- Entitlements Modification using Python ---
 echo "🔧 Starting Entitlements Modification..."
-python3 -c "
+
+# Find all entitlements files recursively
+ENTITLEMENTS_FILES=$(find . -name "*.entitlements")
+
+if [ -z "$ENTITLEMENTS_FILES" ]; then
+    echo "⚠️  No .entitlements files found!"
+else
+    echo "   Found entitlement files:"
+    echo "$ENTITLEMENTS_FILES"
+    
+    # Pass the list of files to Python to process
+    python3 -c "
 import sys
 import plistlib
 import os
 
-# List of entitlement files to modify
-entitlement_files = [
-    'YRepeat/YRepeat.entitlements',
-    'YRepeatDeviceActivityMonitor/YRepeatDeviceActivityMonitor.entitlements',
-    'YRepeatShieldConfiguration/YRepeatShieldConfiguration.entitlements'
-]
+files_str = '''$ENTITLEMENTS_FILES'''
+files = [f.strip() for f in files_str.split('\n') if f.strip()]
 
-for file_rel_path in entitlement_files:
-    file_path = os.path.abspath(file_rel_path)
-    if os.path.exists(file_path):
-        print(f'   Processing {file_rel_path}...')
-        try:
-            with open(file_path, 'rb') as f:
-                plist = plistlib.load(f)
+for file_path in files:
+    # Resolve absolute path just in case, though find returns relative to .
+    abs_path = os.path.abspath(file_path)
+    print(f'   Processing {file_path}...')
+    
+    try:
+        with open(abs_path, 'rb') as f:
+            plist = plistlib.load(f)
+        
+        if 'com.apple.developer.family-controls' in plist:
+            print(f'      Removing com.apple.developer.family-controls key')
+            del plist['com.apple.developer.family-controls']
             
-            if 'com.apple.developer.family-controls' in plist:
-                print(f'      Removing com.apple.developer.family-controls key')
-                del plist['com.apple.developer.family-controls']
-                
-                with open(file_path, 'wb') as f:
-                    plistlib.dump(plist, f)
-                print(f'      ✅ Key removed successfully')
-            else:
-                print(f'      ℹ️ Key not found in plist')
-        except Exception as e:
-            print(f'      ⚠️ Error modifying plist: {e}')
-            # We don't exit here, we try to process other files
-    else:
-        print(f'   ⚠️ File not found: {file_rel_path}')
+            with open(abs_path, 'wb') as f:
+                plistlib.dump(plist, f)
+            print(f'      ✅ Key removed successfully')
+        else:
+            print(f'      ℹ️ Key not found in plist')
+            
+    except Exception as e:
+        print(f'      ⚠️ Error modifying plist: {e}')
 "
+fi
 
 # --- Project File Modification using Python ---
 PROJECT_FILE=$(find . -name "project.pbxproj" -path "*/YRepeat.xcodeproj/*" -print -quit)
