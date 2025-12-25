@@ -22,11 +22,41 @@ if [ "$CI_XCODE_CONFIGURATION" != "Debug" ]; then
     # Navigate to project directory
     cd "$CI_PRIMARY_REPOSITORY_PATH"
 
-    # --- Entitlements ---
+    # --- Entitlements Modification using Python ---
     ENTITLEMENTS_FILE=$(find . -name "YRepeat.entitlements" -print -quit)
     if [ -n "$ENTITLEMENTS_FILE" ]; then
-        echo "🔧 Removing Family Controls from $ENTITLEMENTS_FILE"
-        /usr/libexec/PlistBuddy -c "Delete :com.apple.developer.family-controls" "$ENTITLEMENTS_FILE" 2>/dev/null || echo "  ℹ️  Family Controls key not found"
+        echo "🔧 Found entitlements at: $ENTITLEMENTS_FILE"
+        echo "   Content before modification:"
+        cat "$ENTITLEMENTS_FILE"
+
+        python3 -c "
+import sys
+import plistlib
+
+file_path = '$ENTITLEMENTS_FILE'
+try:
+    with open(file_path, 'rb') as f:
+        plist = plistlib.load(f)
+    
+    if 'com.apple.developer.family-controls' in plist:
+        print('   Removing com.apple.developer.family-controls key')
+        del plist['com.apple.developer.family-controls']
+        
+        with open(file_path, 'wb') as f:
+            plistlib.dump(plist, f)
+        print('   ✅ Key removed successfully')
+    else:
+        print('   ℹ️ Key not found in plist')
+
+except Exception as e:
+    print(f'   ⚠️ Error modifying plist: {e}')
+    sys.exit(1)
+"
+        echo "   Content after modification:"
+        cat "$ENTITLEMENTS_FILE"
+    else
+        echo "⚠️  ERROR: YRepeat.entitlements file not found!"
+        exit 1
     fi
 
     # --- Project File Modification using Python ---
@@ -48,32 +78,18 @@ with open(file_path, 'r') as f:
 print(f'Original content length: {len(content)}')
 
 # 1. Remove Target Dependencies from Main App
-# We look for the main target's dependency block and remove lines with the extension IDs
-# IDs based on your project file:
-# YRepeatDeviceActivityMonitor dependency: C4217B392EFC488200BEE804
-# YRepeatShieldConfiguration dependency: C4217B532EFC4C3700BEE804
-
 content = re.sub(r'\s+C4217B392EFC488200BEE804 /\* PBXTargetDependency \*/,', '', content)
 content = re.sub(r'\s+C4217B532EFC4C3700BEE804 /\* PBXTargetDependency \*/,', '', content)
 
 # 2. Remove Extensions from 'Embed Foundation Extensions' phase
-# IDs:
-# YRepeatDeviceActivityMonitor.appex: C4217B3A2EFC488200BEE804
-# YRepeatShieldConfiguration.appex: C4217B542EFC4C3700BEE804
-# Or matching by name
 content = re.sub(r'.*YRepeatDeviceActivityMonitor\.appex in Embed Foundation Extensions.*', '', content)
 content = re.sub(r'.*YRepeatShieldConfiguration\.appex in Embed Foundation Extensions.*', '', content)
 
 # 3. Remove Targets from PBXProject 'targets' list
-# This effectively removes them from the project so they cannot be built
-# YRepeatDeviceActivityMonitor target ID: C4217B2E2EFC488200BEE804
-# YRepeatShieldConfiguration target ID: C4217B472EFC4C3600BEE804
-
 content = re.sub(r'\s+C4217B2E2EFC488200BEE804 /\* YRepeatDeviceActivityMonitor \*/,', '', content)
 content = re.sub(r'\s+C4217B472EFC4C3600BEE804 /\* YRepeatShieldConfiguration \*/,', '', content)
 
-# 4. Remove Frameworks (DeviceActivity, ManagedSettings, FamilyControls) from ALL FrameworksBuildPhases
-# This is a bit aggressive but ensures no linking issues
+# 4. Remove Frameworks
 content = re.sub(r'.*DeviceActivity\.framework in Frameworks.*', '', content)
 content = re.sub(r'.*ManagedSettings\.framework in Frameworks.*', '', content)
 content = re.sub(r'.*ManagedSettingsUI\.framework in Frameworks.*', '', content)
