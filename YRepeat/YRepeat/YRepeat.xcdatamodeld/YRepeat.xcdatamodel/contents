@@ -62,4 +62,11 @@
         <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="updatedAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
+    <entity name="CheckBoxEntity" representedClassName="CheckBoxEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="sectionNumber" optional="NO" attributeType="Integer 32" defaultValue="0" usesScalarValueType="YES"/>
+        <attribute name="boxNumber" optional="NO" attributeType="Integer 32" defaultValue="0" usesScalarValueType="YES"/>
+        <attribute name="isChecked" optional="NO" attributeType="Boolean" defaultValue="NO" usesScalarValueType="YES"/>
+        <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
 </model>

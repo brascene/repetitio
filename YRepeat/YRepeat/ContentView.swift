@@ -14,7 +14,9 @@ enum Tab: Int, Hashable {
     case calendar = 2
     case habits = 3
     case fast = 4
-    case settings = 5
+    case check = 5
+    case dice = 6
+    case settings = 7
 }
 
 struct ContentView: View {
@@ -25,6 +27,7 @@ struct ContentView: View {
     @StateObject private var habitManager = HabitManager()
     @StateObject private var exerciseManager = ExerciseManager()
     @StateObject private var authenticationManager = AuthenticationManager()
+    @StateObject private var themeManager = ThemeManager()
 
     @Environment(\.managedObjectContext) private var viewContext
 
@@ -32,6 +35,10 @@ struct ContentView: View {
     @SceneStorage("selectedTab") private var selectedTab: Tab = .player
     @AppStorage("showPlayerTab") private var showPlayerTab = true
     @AppStorage("showFastTab") private var showFastTab = true
+    @AppStorage("showHabitsTab") private var showHabitsTab = true
+    @AppStorage("showCheckTab") private var showCheckTab = true
+    @AppStorage("showDiceTab") private var showDiceTab = true
+    @AppStorage("use3DDice") private var use3DDice = false
     @State private var startTime: String = ""
     @State private var endTime: String = ""
     @State private var repeatCount: String = "0"
@@ -72,14 +79,16 @@ struct ContentView: View {
                         Label("Calendar", systemImage: "calendar")
                     }
                     .tag(Tab.calendar)
-                
-                HabitView()
-                    .environmentObject(habitManager)
-                    .tabItem {
-                        Label("Habits", systemImage: "heart.fill")
-                    }
-                    .tag(Tab.habits)
-                
+
+                if showHabitsTab {
+                    HabitView()
+                        .environmentObject(habitManager)
+                        .tabItem {
+                            Label("Habits", systemImage: "heart.fill")
+                        }
+                        .tag(Tab.habits)
+                }
+
                 if showFastTab {
                     HealthView()
                         .environmentObject(exerciseManager)
@@ -88,10 +97,38 @@ struct ContentView: View {
                         }
                         .tag(Tab.fast)
                 }
-                
+
+                if showCheckTab {
+                    CheckView()
+                        .environmentObject(themeManager)
+                        .tabItem {
+                            Label("Check", systemImage: "checkmark.square.fill")
+                        }
+                        .tag(Tab.check)
+                }
+
+                if showDiceTab {
+                    if use3DDice {
+                        Enhanced3DDiceView()
+                            .environmentObject(themeManager)
+                            .tabItem {
+                                Label("Dice", systemImage: "cube.fill")
+                            }
+                            .tag(Tab.dice)
+                    } else {
+                        DiceView()
+                            .environmentObject(themeManager)
+                            .tabItem {
+                                Label("Dice", systemImage: "die.face.5.fill")
+                            }
+                            .tag(Tab.dice)
+                    }
+                }
+
                 SettingsView()
                     .environmentObject(authenticationManager)
                     .environmentObject(firebaseSyncManager)
+                    .environmentObject(themeManager)
                     .tabItem {
                         Label("Settings", systemImage: "gearshape.fill")
                     }
@@ -108,6 +145,18 @@ struct ContentView: View {
                 if !showFastTab && selectedTab == .fast {
                     selectedTab = .daily
                 }
+                // If Habits tab is hidden and Habits is selected, switch to Daily tab
+                if !showHabitsTab && selectedTab == .habits {
+                    selectedTab = .daily
+                }
+                // If Check tab is hidden and Check is selected, switch to Daily tab
+                if !showCheckTab && selectedTab == .check {
+                    selectedTab = .daily
+                }
+                // If Dice tab is hidden and Dice is selected, switch to Daily tab
+                if !showDiceTab && selectedTab == .dice {
+                    selectedTab = .daily
+                }
             }
             .onChange(of: showPlayerTab) { oldValue, newValue in
                 // If Player tab is hidden and it was selected, switch to Daily tab
@@ -118,6 +167,24 @@ struct ContentView: View {
             .onChange(of: showFastTab) { oldValue, newValue in
                 // If Fast tab is hidden and it was selected, switch to Daily tab
                 if !newValue && selectedTab == .fast {
+                    selectedTab = .daily
+                }
+            }
+            .onChange(of: showHabitsTab) { oldValue, newValue in
+                // If Habits tab is hidden and it was selected, switch to Daily tab
+                if !newValue && selectedTab == .habits {
+                    selectedTab = .daily
+                }
+            }
+            .onChange(of: showCheckTab) { oldValue, newValue in
+                // If Check tab is hidden and it was selected, switch to Daily tab
+                if !newValue && selectedTab == .check {
+                    selectedTab = .daily
+                }
+            }
+            .onChange(of: showDiceTab) { oldValue, newValue in
+                // If Dice tab is hidden and it was selected, switch to Daily tab
+                if !newValue && selectedTab == .dice {
                     selectedTab = .daily
                 }
             }

@@ -23,6 +23,10 @@ struct SettingsView: View {
     #endif
     @AppStorage("showPlayerTab") private var showPlayerTab = true
     @AppStorage("showFastTab") private var showFastTab = true
+    @AppStorage("showHabitsTab") private var showHabitsTab = true
+    @AppStorage("showCheckTab") private var showCheckTab = true
+    @AppStorage("showDiceTab") private var showDiceTab = true
+    @AppStorage("use3DDice") private var use3DDice = false
 
     // Expandable sections state
     @State private var appearanceExpanded = false
@@ -496,17 +500,127 @@ struct SettingsView: View {
                                                 .font(.system(size: 18, weight: .semibold, design: .rounded))
                                                 .foregroundColor(.white)
                                         }
-                                        
+
                                         Text("Show or hide the Fast tab in the tab bar")
                                             .font(.system(size: 14, weight: .medium, design: .rounded))
                                             .foregroundColor(.white.opacity(0.7))
                                     }
-                                    
+
                                     Spacer()
-                                    
+
                                     Toggle("", isOn: $showFastTab)
                                         .labelsHidden()
                                         .tint(.purple)
+                                }
+
+                                Divider()
+                                    .background(Color.white.opacity(0.2))
+
+                                // Habits Tab Toggle
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "heart.fill")
+                                                .font(.system(size: 18))
+                                                .foregroundColor(.pink)
+                                            Text("Habits Tab")
+                                                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                                                .foregroundColor(.white)
+                                        }
+
+                                        Text("Show or hide the Habits tab in the tab bar")
+                                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                                            .foregroundColor(.white.opacity(0.7))
+                                    }
+
+                                    Spacer()
+
+                                    Toggle("", isOn: $showHabitsTab)
+                                        .labelsHidden()
+                                        .tint(.pink)
+                                }
+
+                                Divider()
+                                    .background(Color.white.opacity(0.2))
+
+                                // Check Tab Toggle
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "checkmark.square.fill")
+                                                .font(.system(size: 18))
+                                                .foregroundColor(.green)
+                                            Text("Check Tab")
+                                                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                                                .foregroundColor(.white)
+                                        }
+
+                                        Text("Show or hide the Check tab in the tab bar")
+                                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                                            .foregroundColor(.white.opacity(0.7))
+                                    }
+
+                                    Spacer()
+
+                                    Toggle("", isOn: $showCheckTab)
+                                        .labelsHidden()
+                                        .tint(.green)
+                                }
+
+                                Divider()
+                                    .background(Color.white.opacity(0.2))
+
+                                // Dice Tab Toggle
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "die.face.5.fill")
+                                                .font(.system(size: 18))
+                                                .foregroundColor(.orange)
+                                            Text("Dice Tab")
+                                                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                                                .foregroundColor(.white)
+                                        }
+
+                                        Text("Show or hide the Dice tab in the tab bar")
+                                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                                            .foregroundColor(.white.opacity(0.7))
+                                    }
+
+                                    Spacer()
+
+                                    Toggle("", isOn: $showDiceTab)
+                                        .labelsHidden()
+                                        .tint(.orange)
+                                }
+
+                                if showDiceTab {
+                                    Divider()
+                                        .background(Color.white.opacity(0.2))
+
+                                    // 3D Dice Mode Toggle
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 6) {
+                                            HStack(spacing: 8) {
+                                                Image(systemName: "cube.fill")
+                                                    .font(.system(size: 18))
+                                                    .foregroundColor(.orange)
+                                                Text("3D Dice")
+                                                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                                                    .foregroundColor(.white)
+                                            }
+
+                                            Text("Use realistic 3D dice with physics simulation")
+                                                .font(.system(size: 14, weight: .medium, design: .rounded))
+                                                .foregroundColor(.white.opacity(0.7))
+                                        }
+
+                                        Spacer()
+
+                                        Toggle("", isOn: $use3DDice)
+                                            .labelsHidden()
+                                            .tint(.orange)
+                                    }
                                 }
                                 }
                             }
