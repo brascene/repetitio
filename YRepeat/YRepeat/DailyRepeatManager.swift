@@ -15,13 +15,16 @@ class DailyRepeatManager: ObservableObject {
     @Published var items: [DailyRepeatItem] = []
     @Published var taskHistory: [TaskHistoryItem] = []
     @Published var todayDate: Date = Date()
-    
+
     private let persistenceController: PersistenceController
     private let context: NSManagedObjectContext
     private var timer: Timer?
     private var foregroundObserver: NSObjectProtocol?
     private var activeObserver: NSObjectProtocol?
     private let lastResetDateKey = "lastDailyResetDate"
+
+    // Firebase sync manager (set from ContentView)
+    weak var firebaseSyncManager: FirebaseSyncManager?
     
     init(persistenceController: PersistenceController = PersistenceController.shared) {
         self.persistenceController = persistenceController
@@ -210,7 +213,7 @@ class DailyRepeatManager: ObservableObject {
     
     func resetAllForNewDay() {
         let fetchRequest: NSFetchRequest<DailyRepeatItemEntity> = DailyRepeatItemEntity.fetchRequest()
-        
+
         do {
             let entities = try context.fetch(fetchRequest)
             for entity in entities {
@@ -221,6 +224,17 @@ class DailyRepeatManager: ObservableObject {
             saveLastResetDate() // Persist the reset date
             loadItems()
             print("✅ Daily reset completed - all items reset to 0")
+
+            // Clear daily data from Firestore if user is signed in
+            if let firebaseSyncManager = firebaseSyncManager {
+                Task {
+                    do {
+                        try await firebaseSyncManager.clearDailyData()
+                    } catch {
+                        print("❌ Failed to clear daily data from Firestore: \(error)")
+                    }
+                }
+            }
         } catch {
             print("❌ Failed to reset items for new day: \(error)")
         }

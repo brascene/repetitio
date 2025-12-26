@@ -96,29 +96,35 @@ struct ExerciseView: View {
                     }
                     
                     Button(action: {
-                        if let url = URL(string: UIApplication.openSettingsURLString) {
-                            UIApplication.shared.open(url)
+                        // Try to open Settings > Health
+                        // Note: This may not work on all iOS versions as Apple restricts deep linking to Settings
+                        if let url = URL(string: "App-Prefs:Privacy&path=HEALTH") {
+                            UIApplication.shared.open(url) { success in
+                                if !success {
+                                    // Fallback: Open general Settings if the Health URL doesn't work
+                                    if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
+                                        UIApplication.shared.open(settingsUrl)
+                                    }
+                                }
+                            }
                         }
                     }) {
-                        Text("Check Permissions in Settings")
-                            .font(.system(size: 12))
-                            .foregroundColor(.white.opacity(0.3))
-                            .underline()
+                        VStack(spacing: 4) {
+                            Text("Open Health Permissions")
+                                .font(.system(size: 12))
+                                .foregroundColor(.white.opacity(0.3))
+                                .underline()
+                            Text("Settings > Health > Data Access & Devices > YRepeat")
+                                .font(.system(size: 9))
+                                .foregroundColor(.white.opacity(0.2))
+                                .multilineTextAlignment(.center)
+                        }
                     }
                     .padding(.top, 4)
-                    
-                    // Secret/Debug Re-auth button if things are really broken
-                    Button(action: {
-                        manager.forceAuthorization()
-                    }) {
-                        Text("Force Authorization Request")
-                            .font(.system(size: 10))
-                            .foregroundColor(.red.opacity(0.5))
-                            .padding(.top, 8)
-                    }
                 }
             }
             .padding(.top, 8)
+            .padding(.bottom, 40)
             .opacity(animateContent ? 1 : 0)
         }
         .onAppear {

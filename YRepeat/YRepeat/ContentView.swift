@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+internal import CoreData
 
 enum Tab: Int, Hashable {
     case player = 0
@@ -23,6 +24,9 @@ struct ContentView: View {
     @StateObject private var calendarManager = CalendarManager()
     @StateObject private var habitManager = HabitManager()
     @StateObject private var exerciseManager = ExerciseManager()
+    @StateObject private var authenticationManager = AuthenticationManager()
+
+    @Environment(\.managedObjectContext) private var viewContext
 
     @State private var youtubeURL: String = ""
     @SceneStorage("selectedTab") private var selectedTab: Tab = .player
@@ -32,7 +36,12 @@ struct ContentView: View {
     @State private var endTime: String = ""
     @State private var repeatCount: String = "0"
 
+    // FirebaseSyncManager initialized with context
+    @StateObject private var firebaseSyncManager = FirebaseSyncManager(context: PersistenceController.shared.container.viewContext)
+
     var body: some View {
+        let _ = setupDailyRepeatFirebaseSync()
+
         if #available(iOS 26.0, *) {
             TabView(selection: $selectedTab) {
                 if showPlayerTab {
@@ -81,6 +90,8 @@ struct ContentView: View {
                 }
                 
                 SettingsView()
+                    .environmentObject(authenticationManager)
+                    .environmentObject(firebaseSyncManager)
                     .tabItem {
                         Label("Settings", systemImage: "gearshape.fill")
                     }
@@ -113,6 +124,13 @@ struct ContentView: View {
         } else {
             // Fallback on earlier versions
         }
+    }
+
+    // MARK: - Helper Functions
+
+    private func setupDailyRepeatFirebaseSync() {
+        // Wire up FirebaseSyncManager to DailyRepeatManager for daily reset sync
+        dailyRepeatManager.firebaseSyncManager = firebaseSyncManager
     }
 }
 

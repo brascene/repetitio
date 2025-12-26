@@ -15,6 +15,9 @@
 		C4217C082EFC8F1500BEE804 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C4217C072EFC8F1500BEE804 /* WidgetKit.framework */; };
 		C4217C0A2EFC8F1500BEE804 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C4217C092EFC8F1500BEE804 /* SwiftUI.framework */; };
 		C4217C1B2EFC8F1600BEE804 /* YRepeatWidgetExtensionExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C4217C062EFC8F1500BEE804 /* YRepeatWidgetExtensionExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		C4217DF82EFEB58300BEE804 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = C4217DF72EFEB58300BEE804 /* FirebaseAnalytics */; };
+		C4217DFA2EFEB58300BEE804 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = C4217DF92EFEB58300BEE804 /* FirebaseAuth */; };
+		C4217DFC2EFEB58300BEE804 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = C4217DFB2EFEB58300BEE804 /* FirebaseFirestore */; };
 		C4C7644C2EA0E474001C0166 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = C4C7644B2EA0E474001C0166 /* Lottie */; };
 /* End PBXBuildFile section */
 
@@ -82,6 +85,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				AppBlockingSharedStorage.swift,
+				"GoogleService-Info.plist",
 			);
 			target = C4217B2E2EFC488200BEE804 /* YRepeatDeviceActivityMonitor */;
 		};
@@ -96,6 +100,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				AppBlockingSharedStorage.swift,
+				"GoogleService-Info.plist",
 			);
 			target = C4217B472EFC4C3600BEE804 /* YRepeatShieldConfiguration */;
 		};
@@ -110,6 +115,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				DailyRepeatSharedData.swift,
+				"GoogleService-Info.plist",
 			);
 			target = C4217C052EFC8F1500BEE804 /* YRepeatWidgetExtensionExtension */;
 		};
@@ -191,6 +197,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C4217DF82EFEB58300BEE804 /* FirebaseAnalytics in Frameworks */,
+				C4217DFC2EFEB58300BEE804 /* FirebaseFirestore in Frameworks */,
+				C4217DFA2EFEB58300BEE804 /* FirebaseAuth in Frameworks */,
 				C4C7644C2EA0E474001C0166 /* Lottie in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -324,6 +333,9 @@
 			name = YRepeat;
 			packageProductDependencies = (
 				C4C7644B2EA0E474001C0166 /* Lottie */,
+				C4217DF72EFEB58300BEE804 /* FirebaseAnalytics */,
+				C4217DF92EFEB58300BEE804 /* FirebaseAuth */,
+				C4217DFB2EFEB58300BEE804 /* FirebaseFirestore */,
 			);
 			productName = YRepeat;
 			productReference = C4C763D82E9FC078001C0166 /* YRepeat.app */;
@@ -364,6 +376,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				C4C7644A2EA0E474001C0166 /* XCRemoteSwiftPackageReference "lottie-spm" */,
+				C4217DF62EFEB58300BEE804 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C4C763D92E9FC078001C0166 /* Products */;
@@ -903,6 +916,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		C4217DF62EFEB58300BEE804 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.7.0;
+			};
+		};
 		C4C7644A2EA0E474001C0166 /* XCRemoteSwiftPackageReference "lottie-spm" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/airbnb/lottie-spm.git";
@@ -914,6 +935,21 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		C4217DF72EFEB58300BEE804 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C4217DF62EFEB58300BEE804 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		C4217DF92EFEB58300BEE804 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C4217DF62EFEB58300BEE804 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		C4217DFB2EFEB58300BEE804 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C4217DF62EFEB58300BEE804 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
 		C4C7644B2EA0E474001C0166 /* Lottie */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = C4C7644A2EA0E474001C0166 /* XCRemoteSwiftPackageReference "lottie-spm" */;

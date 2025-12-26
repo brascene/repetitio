@@ -17,55 +17,76 @@ class ExerciseManager: ObservableObject {
     @Published var isAuthorized = false
 
     private let healthStore = HKHealthStore()
-    private var hasRequestedAuthThisSession = false
+    private let workoutType = HKObjectType.workoutType()
 
     init() {
-        // Request authorization once per app session
-        requestHealthKitAuthorizationIfNeeded()
+        // Check if we need to request authorization, then fetch data
+        checkAndRequestAuthorizationIfNeeded()
     }
 
-    private func requestHealthKitAuthorizationIfNeeded() {
-        // Only request once per app session to avoid showing dialog repeatedly
-        guard !hasRequestedAuthThisSession else {
-            // Already requested this session, just fetch data
-            fetchEllipticalMinutes()
-            return
-        }
-
-        hasRequestedAuthThisSession = true
-        requestHealthKitAuthorization()
-    }
-    
-    func requestHealthKitAuthorization() {
-        statusMessage = "Requesting permission..."
+    private func checkAndRequestAuthorizationIfNeeded() {
         guard HKHealthStore.isHealthDataAvailable() else {
             statusMessage = "HealthKit not available"
             return
         }
 
-        let workoutType = HKObjectType.workoutType()
+        // Use iOS 15+ API to check if we should request authorization
+        if #available(iOS 15.0, *) {
+            healthStore.getRequestStatusForAuthorization(toShare: [], read: [workoutType]) { [weak self] status, error in
+                DispatchQueue.main.async {
+                    guard let self = self else { return }
 
-        healthStore.requestAuthorization(toShare: nil, read: [workoutType]) { [weak self] success, error in
+                    switch status {
+                    case .shouldRequest:
+                        // We haven't requested yet - show the permission dialog
+                        self.requestHealthKitAuthorization()
+                    case .unnecessary:
+                        // Already requested before - just fetch data
+                        self.isAuthorized = true
+                        self.fetchEllipticalMinutes()
+                    case .unknown:
+                        // Fallback - try to fetch anyway
+                        self.isAuthorized = true
+                        self.fetchEllipticalMinutes()
+                    @unknown default:
+                        self.isAuthorized = true
+                        self.fetchEllipticalMinutes()
+                    }
+                }
+            }
+        } else {
+            // For older iOS versions, request authorization (it will no-op if already requested)
+            requestHealthKitAuthorization()
+        }
+    }
+
+    private func requestHealthKitAuthorization() {
+        statusMessage = "Requesting permission..."
+
+        // Only request READ access - we don't need write for viewing workouts
+        let typesToRead: Set = [workoutType]
+
+        // This will only show the UI ONCE per app lifetime
+        // Subsequent calls do nothing (no-op) unless user uninstalls
+        healthStore.requestAuthorization(toShare: nil, read: typesToRead) { [weak self] success, error in
             DispatchQueue.main.async {
                 guard let self = self else { return }
 
                 if let error = error {
                     self.statusMessage = "Error: \(error.localizedDescription)"
-                    self.isAuthorized = false
                     return
                 }
 
-                // For READ permissions, HealthKit doesn't reveal if user granted/denied for privacy
-                // We always try to fetch data - if permission was denied, we'll get no results
+                // Don't try to check if permission was granted - Apple doesn't tell us for Read permissions
+                // Just try to fetch data. If denied, we'll get empty results.
                 self.isAuthorized = true
                 self.fetchEllipticalMinutes()
             }
         }
     }
-    
+
     func forceAuthorization() {
-        // Force a fresh authorization request even if already requested this session
-        // This is called when user explicitly taps the "Force Authorization Request" button
+        // Manually trigger authorization request
         requestHealthKitAuthorization()
     }
 
@@ -205,9 +226,9 @@ class ExerciseManager: ObservableObject {
     
     // Call this when view appears to refresh data
     func refreshData() {
-        // If we've already requested auth this session, just fetch data
-        // Otherwise request auth first (only happens once per session)
-        requestHealthKitAuthorizationIfNeeded()
+        // Never request authorization here - just fetch data
+        // Authorization is only requested once in init() using getRequestStatusForAuthorization
+        fetchEllipticalMinutes()
     }
 }
 

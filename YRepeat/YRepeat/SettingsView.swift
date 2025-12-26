@@ -6,12 +6,16 @@
 //
 
 import SwiftUI
+import AuthenticationServices
+internal import CoreData
 #if DEBUG
 import FamilyControls
 #endif
 
 struct SettingsView: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var authenticationManager: AuthenticationManager
+    @EnvironmentObject var firebaseSyncManager: FirebaseSyncManager
     #if DEBUG
     @EnvironmentObject var appBlockingManager: AppBlockingManager
     @State private var showAppPicker = false
@@ -23,9 +27,13 @@ struct SettingsView: View {
     // Expandable sections state
     @State private var appearanceExpanded = false
     @State private var tabVisibilityExpanded = false
+    @State private var accountExpanded = false
     #if DEBUG
     @State private var appBlockingExpanded = false
     #endif
+
+    // Confirmation alerts
+    @State private var showWipeCloudDataAlert = false
     
     var body: some View {
         ZStack {
@@ -39,6 +47,263 @@ struct SettingsView: View {
                 // Content
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 24) {
+                        // User Profile Card (when signed in)
+                        if authenticationManager.isSignedIn {
+                            GlassmorphicCard {
+                                HStack(spacing: 16) {
+                                    // Avatar
+                                    ZStack {
+                                        Circle()
+                                            .fill(
+                                                LinearGradient(
+                                                    colors: [.green, .cyan],
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                )
+                                            )
+                                            .frame(width: 64, height: 64)
+
+                                        if let photoURL = authenticationManager.userPhotoURL {
+                                            AsyncImage(url: photoURL) { image in
+                                                image
+                                                    .resizable()
+                                                    .scaledToFill()
+                                            } placeholder: {
+                                                Image(systemName: "person.fill")
+                                                    .font(.system(size: 28))
+                                                    .foregroundColor(.white)
+                                            }
+                                            .frame(width: 64, height: 64)
+                                            .clipShape(Circle())
+                                        } else {
+                                            Image(systemName: "person.fill")
+                                                .font(.system(size: 28))
+                                                .foregroundColor(.white)
+                                        }
+                                    }
+
+                                    // User Info
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        if let name = authenticationManager.userName, !name.isEmpty {
+                                            Text(name)
+                                                .font(.system(size: 20, weight: .bold, design: .rounded))
+                                                .foregroundColor(.white)
+                                        } else {
+                                            Text("Apple User")
+                                                .font(.system(size: 20, weight: .bold, design: .rounded))
+                                                .foregroundColor(.white)
+                                        }
+
+                                        if let email = authenticationManager.userEmail {
+                                            Text(email)
+                                                .font(.system(size: 14))
+                                                .foregroundColor(.white.opacity(0.7))
+                                        } else {
+                                            Text("Signed in with Apple")
+                                                .font(.system(size: 14))
+                                                .foregroundColor(.white.opacity(0.7))
+                                        }
+
+                                        // Status badge
+                                        HStack(spacing: 6) {
+                                            Circle()
+                                                .fill(Color.green)
+                                                .frame(width: 8, height: 8)
+                                            Text("Signed In")
+                                                .font(.system(size: 12, weight: .medium))
+                                                .foregroundColor(.green)
+                                        }
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 4)
+                                        .background(Color.green.opacity(0.2))
+                                        .cornerRadius(12)
+                                    }
+
+                                    Spacer()
+                                }
+                                .padding(20)
+                            }
+                            .padding(.horizontal, 20)
+                        }
+
+                        // Account & Sync Section
+                        GlassmorphicCard {
+                            VStack(alignment: .leading, spacing: 20) {
+                                // Tappable Header
+                                Button(action: {
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                        accountExpanded.toggle()
+                                    }
+                                }) {
+                                    HStack {
+                                        Image(systemName: authenticationManager.isSignedIn ? "icloud.fill" : "person.crop.circle.fill")
+                                            .font(.system(size: 20, weight: .semibold))
+                                            .foregroundStyle(
+                                                LinearGradient(
+                                                    colors: [.green, .cyan],
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                )
+                                            )
+
+                                        Text(authenticationManager.isSignedIn ? "Cloud Sync" : "Account & Sync")
+                                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                                            .foregroundColor(.white)
+
+                                        Spacer()
+
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundColor(.white.opacity(0.6))
+                                            .rotationEffect(.degrees(accountExpanded ? 90 : 0))
+                                    }
+                                    .contentShape(Rectangle())
+                                }
+                                .buttonStyle(PlainButtonStyle())
+
+                                if accountExpanded {
+                                    Divider()
+                                        .background(Color.white.opacity(0.2))
+
+                                    if !authenticationManager.isSignedIn {
+                                        // Not signed in - show sign in option
+                                        VStack(alignment: .leading, spacing: 16) {
+                                            Text("Sign in to sync your data across devices and keep it backed up in the cloud.")
+                                                .font(.system(size: 14))
+                                                .foregroundColor(.white.opacity(0.7))
+                                                .fixedSize(horizontal: false, vertical: true)
+
+                                            Button(action: {
+                                                authenticationManager.signInWithApple()
+                                            }) {
+                                                HStack {
+                                                    Image(systemName: "applelogo")
+                                                        .font(.system(size: 18, weight: .semibold))
+                                                    Text("Sign in with Apple")
+                                                        .font(.system(size: 16, weight: .semibold))
+                                                }
+                                                .foregroundColor(.white)
+                                                .frame(maxWidth: .infinity)
+                                                .frame(height: 50)
+                                                .background(Color.black)
+                                                .cornerRadius(12)
+                                            }
+                                        }
+                                    } else {
+                                        // Signed in - show sync controls
+                                        VStack(spacing: 16) {
+                                            // Sync Status
+                                            VStack(alignment: .leading, spacing: 8) {
+                                                HStack {
+                                                    Image(systemName: firebaseSyncManager.isSyncing ? "arrow.triangle.2.circlepath" : "checkmark.circle.fill")
+                                                        .font(.system(size: 16))
+                                                        .foregroundColor(firebaseSyncManager.isSyncing ? .cyan : .green)
+                                                        .symbolEffect(.rotate, isActive: firebaseSyncManager.isSyncing)
+
+                                                    Text(firebaseSyncManager.syncStatus)
+                                                        .font(.system(size: 14))
+                                                        .foregroundColor(firebaseSyncManager.syncError != nil ? .red : .white.opacity(0.7))
+
+                                                    Spacer()
+
+                                                    if firebaseSyncManager.isSyncing {
+                                                        ProgressView()
+                                                            .scaleEffect(0.8)
+                                                            .tint(.cyan)
+                                                    }
+                                                }
+
+                                                if let lastSync = firebaseSyncManager.lastSyncDate {
+                                                    Text("Last synced: \(lastSync, style: .relative) ago")
+                                                        .font(.system(size: 12))
+                                                        .foregroundColor(.white.opacity(0.5))
+                                                }
+                                            }
+                                            .padding()
+                                            .background(Color.white.opacity(0.05))
+                                            .cornerRadius(12)
+
+                                            // Sync Buttons
+                                            HStack(spacing: 12) {
+                                                Button(action: {
+                                                    Task {
+                                                        try? await firebaseSyncManager.uploadAllData()
+                                                    }
+                                                }) {
+                                                    HStack {
+                                                        Image(systemName: "icloud.and.arrow.up")
+                                                        Text("Upload")
+                                                    }
+                                                    .font(.system(size: 14, weight: .medium))
+                                                    .foregroundColor(.white)
+                                                    .frame(maxWidth: .infinity)
+                                                    .padding(.vertical, 10)
+                                                    .background(Color.blue.opacity(0.3))
+                                                    .cornerRadius(8)
+                                                }
+                                                .disabled(firebaseSyncManager.isSyncing)
+
+                                                Button(action: {
+                                                    Task {
+                                                        try? await firebaseSyncManager.downloadAllData()
+                                                    }
+                                                }) {
+                                                    HStack {
+                                                        Image(systemName: "icloud.and.arrow.down")
+                                                        Text("Download")
+                                                    }
+                                                    .font(.system(size: 14, weight: .medium))
+                                                    .foregroundColor(.white)
+                                                    .frame(maxWidth: .infinity)
+                                                    .padding(.vertical, 10)
+                                                    .background(Color.green.opacity(0.3))
+                                                    .cornerRadius(8)
+                                                }
+                                                .disabled(firebaseSyncManager.isSyncing)
+                                            }
+
+                                            // Wipe Cloud Data Button
+                                            Button(action: {
+                                                showWipeCloudDataAlert = true
+                                            }) {
+                                                HStack {
+                                                    Image(systemName: "trash.fill")
+                                                    Text("Wipe Cloud Data")
+                                                }
+                                                .font(.system(size: 14, weight: .medium))
+                                                .foregroundColor(.white)
+                                                .frame(maxWidth: .infinity)
+                                                .padding(.vertical, 10)
+                                                .background(Color.red.opacity(0.3))
+                                                .cornerRadius(8)
+                                            }
+                                            .disabled(firebaseSyncManager.isSyncing)
+
+                                            Divider()
+                                                .background(Color.white.opacity(0.2))
+
+                                            // Sign Out Button
+                                            Button(action: {
+                                                authenticationManager.signOut()
+                                            }) {
+                                                HStack {
+                                                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                                                    Text("Sign Out")
+                                                        .font(.system(size: 16, weight: .medium))
+                                                }
+                                                .foregroundColor(.red)
+                                                .frame(maxWidth: .infinity)
+                                                .padding()
+                                                .background(Color.red.opacity(0.1))
+                                                .cornerRadius(12)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 20)
+
                         // Appearance Section
                         GlassmorphicCard {
                             VStack(alignment: .leading, spacing: 20) {
@@ -395,6 +660,20 @@ struct SettingsView: View {
             AppBlockingTimePickerView(manager: appBlockingManager)
         }
         #endif
+        .alert("Wipe Cloud Data?", isPresented: $showWipeCloudDataAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Wipe", role: .destructive) {
+                Task {
+                    do {
+                        try await firebaseSyncManager.clearAllCloudData()
+                    } catch {
+                        print("Failed to wipe cloud data: \(error)")
+                    }
+                }
+            }
+        } message: {
+            Text("This will permanently delete all your cloud data (fasts, daily repeats, habits, calendar events). Your local data will remain untouched. This action cannot be undone.")
+        }
     }
 
     #if DEBUG
@@ -442,4 +721,6 @@ struct SettingsView: View {
 #Preview {
     SettingsView()
         .environmentObject(ThemeManager())
+        .environmentObject(AuthenticationManager())
+        .environmentObject(FirebaseSyncManager(context: PersistenceController.shared.container.viewContext))
 }

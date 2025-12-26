@@ -273,10 +273,12 @@ class FastManager: ObservableObject {
     init(persistenceController: PersistenceController = PersistenceController.shared) {
         self.persistenceController = persistenceController
         self.context = persistenceController.container.viewContext
-        
+
         loadFasts()
         startTimer()
-        requestHealthKitAuthorization()
+        // HealthKit authorization disabled - saving fasts to HealthKit is disabled
+        // Uncommenting this would cause repeated permission prompts
+        // requestHealthKitAuthorization()
     }
     
     deinit {
@@ -287,32 +289,38 @@ class FastManager: ObservableObject {
     
     private func requestHealthKitAuthorization() {
         guard HKHealthStore.isHealthDataAvailable() else {
-            print("HealthKit is not available on this device")
             return
         }
-        
-        // Use HKWorkoutType to represent fasting periods
-        // Apple doesn't have a native fasting category, so we use workouts with metadata
-        let workoutType = HKObjectType.workoutType()
-        
-        // Request write authorization for workout data (which we'll use for fasting)
-        healthStore.requestAuthorization(toShare: [workoutType], read: nil) { success, error in
-            if let error = error {
-                print("HealthKit authorization error: \(error.localizedDescription)")
-            } else if success {
-                print("HealthKit authorization granted for fasting data")
-            } else {
-                print("HealthKit authorization denied")
-            }
+
+        // Use Mindful Session to represent fasting periods
+        // Apple doesn't have a native fasting category, so we use Mindful Minutes as a workaround
+        // This won't affect Activity rings or show up as exercise
+        guard let mindfulType = HKObjectType.categoryType(forIdentifier: .mindfulSession) else {
+            return
+        }
+
+        // Request write authorization for Mindful Session (not workout!)
+        healthStore.requestAuthorization(toShare: [mindfulType], read: nil) { _, _ in
+            // Authorization completed silently
+            // Note: This is currently disabled in init() to avoid permission prompts
         }
     }
     
     func saveFastToHealthKit(_ fast: Fast) {
+        // Saving fasts to HealthKit is currently disabled
+        // If you want to enable it, uncomment requestHealthKitAuthorization() in init()
+        return
+
+        /*
         guard HKHealthStore.isHealthDataAvailable() else {
-            print("HealthKit is not available on this device")
             return
         }
-        
+
+        // Use Mindful Session type (NOT workout - to avoid affecting Activity rings)
+        guard let mindfulType = HKObjectType.categoryType(forIdentifier: .mindfulSession) else {
+            return
+        }
+
         // Calculate end time (use actual end time if available, otherwise use goal time)
         let endTime: Date
         if let fastEndTime = fast.endTime {
@@ -320,41 +328,31 @@ class FastManager: ObservableObject {
         } else {
             endTime = fast.startTime.addingTimeInterval(TimeInterval(fast.goalHours * 3600))
         }
-        
-        // Calculate duration
-        let duration = endTime.timeIntervalSince(fast.startTime)
-        
-        // Create workout to represent fasting period
-        // Note: Using deprecated initializer for historical workouts (completed fasts)
-        // HKWorkoutBuilder is designed for live workouts, not historical data
-        // This is the appropriate approach for saving completed fasting sessions
-        let workout = HKWorkout(
-            activityType: .other,
+
+        // Create Mindful Session to represent fasting period
+        // This shows as "Mindful Minutes" in Health app, NOT as workout/activity
+        // Won't affect Activity rings or Fitness app
+        let sample = HKCategorySample(
+            type: mindfulType,
+            value: HKCategoryValue.notApplicable.rawValue,
             start: fast.startTime,
             end: endTime,
-            duration: duration,
-            totalEnergyBurned: nil,
-            totalDistance: nil,
             metadata: [
-                HKMetadataKeyWorkoutBrandName: "YRepeat",
+                "appName": "YRepeat",
                 "fastType": fast.fastType.rawValue,
                 "goalHours": "\(fast.goalHours)",
                 "durationHours": String(format: "%.2f", fast.durationHours),
                 "isCompleted": fast.isCompleted ? "true" : "false",
-                "isFasting": "true" // Mark this as a fasting workout
+                "isFasting": "true",
+                HKMetadataKeyExternalUUID: "FastingSession_\(fast.startTime.timeIntervalSince1970)"
             ]
         )
-        
+
         // Save to HealthKit
-        healthStore.save(workout) { success, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    print("Failed to save fast to HealthKit: \(error.localizedDescription)")
-                } else if success {
-                    print("Fast saved to HealthKit successfully: \(fast.fastType.rawValue) for \(fast.goalHours) hours")
-                }
-            }
+        healthStore.save(sample) { success, error in
+            // Saved silently - won't affect Activity rings
         }
+        */
     }
     
     // MARK: - Timer
