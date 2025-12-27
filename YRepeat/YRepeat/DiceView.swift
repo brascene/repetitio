@@ -9,6 +9,7 @@ import SwiftUI
 
 struct DiceView: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @Binding var isMenuShowing: Bool
     @State private var diceNumber = 1
     @State private var isRolling = false
     @State private var rotationX: Double = 0
@@ -31,31 +32,24 @@ struct DiceView: View {
             )
             .ignoresSafeArea()
 
-            VStack(spacing: 0) {
+            VStack(spacing: 20) {
                 // Header
                 headerView
 
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 32) {
-                        // Dice Count Selector
-                        diceCountSelector
+                // Dice Count Selector
+                diceCountSelector
 
-                        // Dice Display
-                        diceDisplayArea
+                // Dice Display
+                diceDisplayArea
 
-                        // Roll Button
-                        rollButton
+                Spacer()
 
-                        // History Section
-                        if !rollHistory.isEmpty {
-                            historySection
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 24)
-                    .padding(.bottom, 100)
-                }
+                // Roll Button
+                rollButton
             }
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
+            .padding(.bottom, 20)
         }
         .navigationBarHidden(true)
         .navigationBarBackButtonHidden(true)
@@ -66,12 +60,14 @@ struct DiceView: View {
     private var headerView: some View {
         VStack(spacing: 16) {
             HStack {
+                MenuButton(isMenuShowing: $isMenuShowing)
+
                 HStack(spacing: 12) {
                     ZStack {
                         Circle()
-                            .fill(LinearGradient(colors: [.orange, .red], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .fill(LinearGradient(colors: themeManager.backgroundColors, startPoint: .topLeading, endPoint: .bottomTrailing))
                             .frame(width: 44, height: 44)
-                            .shadow(color: .orange.opacity(0.3), radius: 8, x: 0, y: 4)
+                            .shadow(color: themeManager.backgroundColors.first?.opacity(0.3) ?? .clear, radius: 8, x: 0, y: 4)
 
                         Image(systemName: "die.face.5.fill")
                             .font(.system(size: 20, weight: .semibold))
@@ -106,7 +102,7 @@ struct DiceView: View {
                 }
             }
             .padding(.horizontal, 20)
-            .padding(.top, 60)
+            .padding(.top, 10)
         }
     }
 
@@ -114,58 +110,37 @@ struct DiceView: View {
 
     private var diceCountSelector: some View {
         GlassmorphicCard {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("Number of Dice")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(.white)
-
-                HStack(spacing: 12) {
-                    ForEach(1...3, id: \.self) { count in
-                        Button(action: {
-                            guard !isRolling else { return }
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                numberOfDice = count
-                                diceResults = Array(repeating: 1, count: count)
-                            }
-                            // Haptic feedback
-                            let generator = UIImpactFeedbackGenerator(style: .light)
-                            generator.impactOccurred()
-                        }) {
-                            VStack(spacing: 8) {
-                                HStack(spacing: 4) {
-                                    ForEach(0..<count, id: \.self) { _ in
-                                        Image(systemName: "die.face.1.fill")
-                                            .font(.system(size: count == 1 ? 24 : (count == 2 ? 18 : 14)))
-                                            .foregroundColor(numberOfDice == count ? .white : .white.opacity(0.4))
-                                    }
-                                }
-
-                                Text("\(count) \(count == 1 ? "Die" : "Dice")")
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(numberOfDice == count ? .white : .white.opacity(0.5))
-                            }
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 70)
-                            .background(
-                                numberOfDice == count
-                                    ? LinearGradient(
-                                        colors: [.orange, .red],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                      )
-                                    : LinearGradient(
-                                        colors: [Color.white.opacity(0.1), Color.white.opacity(0.1)],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                      )
-                            )
-                            .cornerRadius(16)
+            HStack(spacing: 12) {
+                ForEach(1...3, id: \.self) { count in
+                    Button(action: {
+                        guard !isRolling else { return }
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            numberOfDice = count
+                            diceResults = Array(repeating: 1, count: count)
                         }
-                        .buttonStyle(ScaleButtonStyle())
+                        let generator = UIImpactFeedbackGenerator(style: .light)
+                        generator.impactOccurred()
+                    }) {
+                        HStack(spacing: 4) {
+                            ForEach(0..<count, id: \.self) { _ in
+                                Image(systemName: "die.face.1.fill")
+                                    .font(.system(size: count == 1 ? 28 : (count == 2 ? 22 : 18)))
+                                    .foregroundColor(numberOfDice == count ? .white : .white.opacity(0.4))
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(
+                            numberOfDice == count
+                                ? LinearGradient(colors: themeManager.backgroundColors, startPoint: .topLeading, endPoint: .bottomTrailing)
+                                : LinearGradient(colors: [Color.white.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                        )
+                        .cornerRadius(12)
                     }
+                    .buttonStyle(ScaleButtonStyle())
                 }
             }
-            .padding(20)
+            .padding(12)
         }
     }
 
@@ -173,61 +148,48 @@ struct DiceView: View {
 
     private var diceDisplayArea: some View {
         GlassmorphicCard {
-            VStack(spacing: 24) {
-                // Result Summary
-                if diceResults.reduce(0, +) > 0 {
+            VStack(spacing: 20) {
+                // Result Summary - only show for multiple dice
+                if numberOfDice > 1 && diceResults.reduce(0, +) > 0 {
                     VStack(spacing: 8) {
                         Text("Total: \(diceResults.reduce(0, +))")
-                            .font(.system(size: 48, weight: .bold, design: .rounded))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [.orange, .red],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
+                            .font(.system(size: 42, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
 
-                        if numberOfDice > 1 {
-                            Text(diceResults.map { String($0) }.joined(separator: " + "))
-                                .font(.system(size: 18, weight: .medium))
-                                .foregroundColor(.white.opacity(0.7))
-                        }
+                        Text(diceResults.map { String($0) }.joined(separator: " + "))
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.white.opacity(0.7))
                     }
-                    .padding(.top, 20)
                 }
 
                 // Dice Display
                 if numberOfDice == 1 {
                     singleDiceView(number: diceResults[0])
+                        .padding(.vertical, 16)
+                        .padding(.horizontal, 16)
                 } else {
-                    HStack(spacing: 20) {
+                    HStack(spacing: 16) {
                         ForEach(Array(diceResults.enumerated()), id: \.offset) { index, number in
                             multipleDiceView(number: number, index: index)
                         }
                     }
+                    .padding(16)
                 }
             }
-            .padding(20)
-            .frame(minHeight: 300)
+            .frame(maxHeight: .infinity)
         }
     }
 
     // MARK: - Single Dice View
 
     private func singleDiceView(number: Int) -> some View {
-        Image(systemName: "die.face.\(number).fill")
+        Image(systemName: "die.face.\(number)")
             .resizable()
             .interpolation(.none)
             .scaledToFit()
             .frame(width: 180, height: 180)
-            .foregroundStyle(
-                LinearGradient(
-                    colors: [.orange, .red],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-            .shadow(color: .orange.opacity(0.5), radius: 20, x: 0, y: 10)
+            .foregroundStyle(.white)
+            .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 10)
             .rotation3DEffect(
                 .degrees(rotationX),
                 axis: (x: 1, y: 0, z: 0)
@@ -247,19 +209,13 @@ struct DiceView: View {
     // MARK: - Multiple Dice View
 
     private func multipleDiceView(number: Int, index: Int) -> some View {
-        Image(systemName: "die.face.\(number).fill")
+        Image(systemName: "die.face.\(number)")
             .resizable()
             .interpolation(.none)
             .scaledToFit()
             .frame(width: numberOfDice == 2 ? 120 : 90, height: numberOfDice == 2 ? 120 : 90)
-            .foregroundStyle(
-                LinearGradient(
-                    colors: [.orange, .red],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-            .shadow(color: .orange.opacity(0.4), radius: 15, x: 0, y: 8)
+            .foregroundStyle(.white)
+            .shadow(color: .black.opacity(0.3), radius: 15, x: 0, y: 8)
             .rotation3DEffect(
                 .degrees(isRolling ? rotationX + Double(index * 120) : 0),
                 axis: (x: 1, y: 0, z: 0)
@@ -275,25 +231,49 @@ struct DiceView: View {
 
     private var rollButton: some View {
         Button(action: rollDice) {
-            HStack(spacing: 12) {
-                Image(systemName: isRolling ? "arrow.triangle.2.circlepath" : "play.fill")
-                    .font(.system(size: 20, weight: .bold))
+            ZStack {
+                // Outer glow ring
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: isRolling ? [.gray.opacity(0.3)] : themeManager.backgroundColors.map { $0.opacity(0.4) },
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 160, height: 160)
+                    .blur(radius: 20)
 
-                Text(isRolling ? "Rolling..." : "Roll \(numberOfDice == 1 ? "Dice" : "All Dice")!")
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                // Main button
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: isRolling ? [.gray, .gray.opacity(0.8)] : themeManager.backgroundColors,
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 140, height: 140)
+                    .shadow(color: isRolling ? .black.opacity(0.3) : (themeManager.backgroundColors.first?.opacity(0.6) ?? .clear), radius: 15, x: 0, y: 8)
+                    .overlay(
+                        Circle()
+                            .stroke(Color.white.opacity(0.2), lineWidth: 2)
+                    )
+
+                // Icon and Text
+                VStack(spacing: 8) {
+                    Image(systemName: isRolling ? "arrow.triangle.2.circlepath" : "play.fill")
+                        .font(.system(size: 32, weight: .bold))
+                        .foregroundColor(.white)
+                        .rotationEffect(.degrees(isRolling ? 360 : 0))
+                        .animation(isRolling ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isRolling)
+
+                    Text(isRolling ? "Rolling" : "ROLL")
+                        .font(.system(size: 18, weight: .black, design: .rounded))
+                        .foregroundColor(.white)
+                }
             }
-            .foregroundColor(.white)
-            .frame(maxWidth: .infinity)
-            .frame(height: 70)
-            .background(
-                LinearGradient(
-                    colors: isRolling ? [.gray, .gray.opacity(0.8)] : [.orange, .red],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-            )
-            .cornerRadius(20)
-            .shadow(color: isRolling ? .clear : .orange.opacity(0.5), radius: 20, x: 0, y: 10)
+            .frame(height: 140)
         }
         .disabled(isRolling)
         .buttonStyle(ScaleButtonStyle())
@@ -307,7 +287,13 @@ struct DiceView: View {
                 HStack {
                     Image(systemName: "clock.fill")
                         .font(.system(size: 18))
-                        .foregroundColor(.orange)
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: themeManager.backgroundColors,
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
 
                     Text("Recent Rolls")
                         .font(.system(size: 18, weight: .semibold))
@@ -338,7 +324,13 @@ struct DiceView: View {
                                         ForEach(result.values, id: \.self) { value in
                                             Image(systemName: "die.face.\(value).fill")
                                                 .font(.system(size: 16))
-                                                .foregroundColor(.orange)
+                                                .foregroundStyle(
+                                                    LinearGradient(
+                                                        colors: themeManager.backgroundColors,
+                                                        startPoint: .topLeading,
+                                                        endPoint: .bottomTrailing
+                                                    )
+                                                )
                                         }
                                     }
 
@@ -476,6 +468,6 @@ struct RollResult: Identifiable {
 }
 
 #Preview {
-    DiceView()
+    DiceView(isMenuShowing: .constant(false))
         .environmentObject(ThemeManager())
 }

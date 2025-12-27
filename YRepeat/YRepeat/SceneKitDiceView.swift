@@ -296,6 +296,7 @@ struct SceneKitDiceView: UIViewRepresentable {
 
 struct Enhanced3DDiceView: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @Binding var isMenuShowing: Bool
     @State private var numberOfDice = 1
     @State private var isRolling = false
     @State private var diceResults: [Int] = [1]
@@ -359,12 +360,14 @@ struct Enhanced3DDiceView: View {
     private var headerView: some View {
         VStack(spacing: 16) {
             HStack {
+                MenuButton(isMenuShowing: $isMenuShowing)
+
                 HStack(spacing: 12) {
                     ZStack {
                         Circle()
-                            .fill(LinearGradient(colors: [.orange, .red], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .fill(LinearGradient(colors: themeManager.backgroundColors, startPoint: .topLeading, endPoint: .bottomTrailing))
                             .frame(width: 44, height: 44)
-                            .shadow(color: .orange.opacity(0.3), radius: 8, x: 0, y: 4)
+                            .shadow(color: themeManager.backgroundColors.first?.opacity(0.3) ?? .clear, radius: 8, x: 0, y: 4)
 
                         Image(systemName: "cube.fill")
                             .font(.system(size: 20, weight: .semibold))
@@ -391,13 +394,18 @@ struct Enhanced3DDiceView: View {
                         Image(systemName: showHistory ? "clock.fill" : "clock")
                             .font(.system(size: 20))
                             .foregroundColor(.white)
-                            .frame(width: 40, height: 40)
-                            .background(Circle().fill(Color.white.opacity(0.1)))
+                            .frame(width: 44, height: 44)
+                            .background(
+                                Circle()
+                                    .fill(.ultraThinMaterial)
+                                    .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 1))
+                            )
+                            .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
                     }
                 }
             }
             .padding(.horizontal, 20)
-            .padding(.top, 60)
+            .padding(.top, 10)
         }
     }
 
@@ -423,7 +431,7 @@ struct Enhanced3DDiceView: View {
                                 .frame(maxWidth: .infinity, minHeight: 70)
                                 .background(
                                     numberOfDice == count
-                                        ? LinearGradient(colors: [.orange, .red], startPoint: .topLeading, endPoint: .bottomTrailing)
+                                        ? LinearGradient(colors: themeManager.backgroundColors, startPoint: .topLeading, endPoint: .bottomTrailing)
                                         : LinearGradient(colors: [Color.white.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing)
                                 )
                                 .cornerRadius(16)
@@ -449,13 +457,13 @@ struct Enhanced3DDiceView: View {
             .frame(maxWidth: .infinity, minHeight: 70)
             .background(
                 LinearGradient(
-                    colors: isRolling ? [.gray] : [.orange, .red],
+                    colors: isRolling ? [.gray] : themeManager.backgroundColors,
                     startPoint: .leading,
                     endPoint: .trailing
                 )
             )
             .cornerRadius(20)
-            .shadow(color: isRolling ? .clear : .orange.opacity(0.5), radius: 20, y: 10)
+            .shadow(color: isRolling ? .clear : (themeManager.backgroundColors.first?.opacity(0.5) ?? .clear), radius: 20, y: 10)
         }
         .disabled(isRolling)
     }

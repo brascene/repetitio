@@ -16,7 +16,8 @@ enum Tab: Int, Hashable {
     case fast = 4
     case check = 5
     case dice = 6
-    case settings = 7
+    case xo = 7
+    case settings = 8
 }
 
 struct ContentView: View {
@@ -32,16 +33,19 @@ struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
 
     @State private var youtubeURL: String = ""
-    @SceneStorage("selectedTab") private var selectedTab: Tab = .player
+    @SceneStorage("selectedTab") private var selectedTab: Tab = .daily
+    @State private var isMenuShowing = false
     @AppStorage("showPlayerTab") private var showPlayerTab = true
     @AppStorage("showFastTab") private var showFastTab = true
     @AppStorage("showHabitsTab") private var showHabitsTab = true
     @AppStorage("showCheckTab") private var showCheckTab = true
     @AppStorage("showDiceTab") private var showDiceTab = true
+    @AppStorage("showXOTab") private var showXOTab = false
     @AppStorage("use3DDice") private var use3DDice = false
     @State private var startTime: String = ""
     @State private var endTime: String = ""
     @State private var repeatCount: String = "0"
+    @State private var dragProgress: CGFloat = 0 // 0 = closed, 1 = fully open
 
     // FirebaseSyncManager initialized with context
     @StateObject private var firebaseSyncManager = FirebaseSyncManager(context: PersistenceController.shared.container.viewContext)
@@ -50,143 +54,179 @@ struct ContentView: View {
         let _ = setupDailyRepeatFirebaseSync()
 
         if #available(iOS 26.0, *) {
-            TabView(selection: $selectedTab) {
-                if showPlayerTab {
-                    PlayerView(
-                        playerController: playerController,
-                        historyManager: historyManager,
-                        youtubeURL: $youtubeURL,
-                        startTime: $startTime,
-                        endTime: $endTime,
-                        repeatCount: $repeatCount
+            ZStack {
+                // Black background that shows when content is scaled - only show when menu is opening
+                if dragProgress > 0 {
+                    Color.black
+                        .ignoresSafeArea()
+                        .opacity(dragProgress)
+                }
+
+                // Main content with 3D transformations
+                ZStack {
+                        // Main TabView with core tabs only
+                        TabView(selection: $selectedTab) {
+                        DailyRepeatView(isMenuShowing: $isMenuShowing)
+                            .environmentObject(dailyRepeatManager)
+                            .environmentObject(themeManager)
+                            .tabItem {
+                                Label("Daily", systemImage: "repeat.circle.fill")
+                            }
+                            .tag(Tab.daily)
+
+                        CalendarView(isMenuShowing: $isMenuShowing)
+                            .environmentObject(calendarManager)
+                            .environmentObject(themeManager)
+                            .tabItem {
+                                Label("Calendar", systemImage: "calendar")
+                            }
+                            .tag(Tab.calendar)
+
+                        HealthView(isMenuShowing: $isMenuShowing)
+                            .environmentObject(exerciseManager)
+                            .environmentObject(themeManager)
+                            .tabItem {
+                                Label("Health", systemImage: "waveform.path.ecg")
+                            }
+                            .tag(Tab.fast)
+
+                        CheckView(isMenuShowing: $isMenuShowing)
+                            .environmentObject(themeManager)
+                            .tabItem {
+                                Label("Check", systemImage: "checkmark.square.fill")
+                            }
+                            .tag(Tab.check)
+                    }
+                    // Enable tab bar minimization on scroll (iOS 26 feature)
+                    .tabBarMinimizeBehavior(.onScrollDown)
+
+                    // Content for menu-only screens
+                    Group {
+                        if selectedTab == .player {
+                            PlayerView(
+                                playerController: playerController,
+                                historyManager: historyManager,
+                                youtubeURL: $youtubeURL,
+                                startTime: $startTime,
+                                endTime: $endTime,
+                                repeatCount: $repeatCount,
+                                isMenuShowing: $isMenuShowing
+                            )
+                            .environmentObject(themeManager)
+                        } else if selectedTab == .habits {
+                            HabitView(isMenuShowing: $isMenuShowing)
+                                .environmentObject(habitManager)
+                                .environmentObject(themeManager)
+                        } else if selectedTab == .dice {
+                            if use3DDice {
+                                Enhanced3DDiceView(isMenuShowing: $isMenuShowing)
+                                    .environmentObject(themeManager)
+                            } else {
+                                DiceView(isMenuShowing: $isMenuShowing)
+                                    .environmentObject(themeManager)
+                            }
+                        } else if selectedTab == .xo {
+                            XOView(isMenuShowing: $isMenuShowing)
+                                .environmentObject(themeManager)
+                        } else if selectedTab == .settings {
+                            SettingsView(isMenuShowing: $isMenuShowing)
+                                .environmentObject(authenticationManager)
+                                .environmentObject(firebaseSyncManager)
+                                .environmentObject(themeManager)
+                        }
+                    }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    // 3D Transformation Effects (based on dragProgress)
+                    .scaleEffect(1.0 - (dragProgress * 0.12)) // 1.0 to 0.88
+                    .offset(x: dragProgress * 280)
+                    .rotation3DEffect(
+                        .degrees(-dragProgress * 8),
+                        axis: (x: 0, y: 1, z: 0),
+                        anchor: .leading,
+                        perspective: 0.3
                     )
-                    .tabItem {
-                        Label("Player", systemImage: "play.rectangle.fill")
-                    }
-                    .tag(Tab.player)
-                }
-                
-                DailyRepeatView()
-                    .environmentObject(dailyRepeatManager)
-                    .tabItem {
-                        Label("Daily", systemImage: "repeat.circle.fill")
-                    }
-                    .tag(Tab.daily)
-                
-                CalendarView()
-                    .environmentObject(calendarManager)
-                    .tabItem {
-                        Label("Calendar", systemImage: "calendar")
-                    }
-                    .tag(Tab.calendar)
-
-                if showHabitsTab {
-                    HabitView()
-                        .environmentObject(habitManager)
-                        .tabItem {
-                            Label("Habits", systemImage: "heart.fill")
+                    .shadow(color: .black.opacity(dragProgress * 0.5), radius: 20, x: -10, y: 0)
+                    .blur(radius: dragProgress * 1)
+                    .brightness(-dragProgress * 0.1)
+                    .allowsHitTesting(!isMenuShowing)
+                    .onChange(of: isMenuShowing) { oldValue, newValue in
+                        // Sync dragProgress with menu state when opened/closed programmatically
+                        if newValue {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                dragProgress = 1
+                            }
+                        } else {
+                            withAnimation(.spring(response: 0.25, dampingFraction: 0.85)) {
+                                dragProgress = 0
+                            }
                         }
-                        .tag(Tab.habits)
-                }
+                    }
 
-                if showFastTab {
-                    HealthView()
-                        .environmentObject(exerciseManager)
-                        .tabItem {
-                            Label("Health", systemImage: "waveform.path.ecg")
-                        }
-                        .tag(Tab.fast)
-                }
+                    // Left edge swipe detector (transparent area)
+                    if !isMenuShowing {
+                        Rectangle()
+                            .fill(Color.white.opacity(0.001))
+                            .frame(width: 30)
+                            .frame(maxHeight: .infinity)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .gesture(
+                                DragGesture(minimumDistance: 0, coordinateSpace: .global)
+                                    .onChanged { value in
+                                        let translation = max(0, value.translation.width)
+                                        let menuWidth: CGFloat = 280
+                                        dragProgress = min(1, translation / menuWidth)
+                                    }
+                                    .onEnded { value in
+                                        let velocity = value.predictedEndTranslation.width - value.translation.width
 
-                if showCheckTab {
-                    CheckView()
+                                        if dragProgress > 0.3 || velocity > 200 {
+                                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                                isMenuShowing = true
+                                                dragProgress = 1
+                                            }
+                                        } else {
+                                            withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
+                                                dragProgress = 0
+                                            }
+                                        }
+                                    }
+                            )
+                            .zIndex(999)
+                    }
+
+                    // Side Menu Overlay
+                    SideMenuView(isShowing: $isMenuShowing, selectedTab: $selectedTab, dragProgress: $dragProgress)
                         .environmentObject(themeManager)
-                        .tabItem {
-                            Label("Check", systemImage: "checkmark.square.fill")
-                        }
-                        .tag(Tab.check)
-                }
+                        .zIndex(1000)
+                        .simultaneousGesture(
+                            // Drag to close gesture on menu
+                            DragGesture(minimumDistance: 0, coordinateSpace: .global)
+                                .onChanged { value in
+                                    if isMenuShowing {
+                                        let translation = value.translation.width
+                                        let menuWidth: CGFloat = 280
+                                        let progress = max(0, min(1, 1 + (translation / menuWidth)))
+                                        dragProgress = progress
+                                    }
+                                }
+                                .onEnded { value in
+                                    if isMenuShowing {
+                                        let velocity = value.predictedEndTranslation.width - value.translation.width
 
-                if showDiceTab {
-                    if use3DDice {
-                        Enhanced3DDiceView()
-                            .environmentObject(themeManager)
-                            .tabItem {
-                                Label("Dice", systemImage: "cube.fill")
-                            }
-                            .tag(Tab.dice)
-                    } else {
-                        DiceView()
-                            .environmentObject(themeManager)
-                            .tabItem {
-                                Label("Dice", systemImage: "die.face.5.fill")
-                            }
-                            .tag(Tab.dice)
-                    }
-                }
-
-                SettingsView()
-                    .environmentObject(authenticationManager)
-                    .environmentObject(firebaseSyncManager)
-                    .environmentObject(themeManager)
-                    .tabItem {
-                        Label("Settings", systemImage: "gearshape.fill")
-                    }
-                    .tag(Tab.settings)
-            }
-            // Enable tab bar minimization on scroll (iOS 26 feature)
-            .tabBarMinimizeBehavior(.onScrollDown)
-            .onAppear {
-                // If Player tab is hidden and Player is selected, switch to Daily tab
-                if !showPlayerTab && selectedTab == .player {
-                    selectedTab = .daily
-                }
-                // If Fast tab is hidden and Fast is selected, switch to Daily tab
-                if !showFastTab && selectedTab == .fast {
-                    selectedTab = .daily
-                }
-                // If Habits tab is hidden and Habits is selected, switch to Daily tab
-                if !showHabitsTab && selectedTab == .habits {
-                    selectedTab = .daily
-                }
-                // If Check tab is hidden and Check is selected, switch to Daily tab
-                if !showCheckTab && selectedTab == .check {
-                    selectedTab = .daily
-                }
-                // If Dice tab is hidden and Dice is selected, switch to Daily tab
-                if !showDiceTab && selectedTab == .dice {
-                    selectedTab = .daily
-                }
-            }
-            .onChange(of: showPlayerTab) { oldValue, newValue in
-                // If Player tab is hidden and it was selected, switch to Daily tab
-                if !newValue && selectedTab == .player {
-                    selectedTab = .daily
-                }
-            }
-            .onChange(of: showFastTab) { oldValue, newValue in
-                // If Fast tab is hidden and it was selected, switch to Daily tab
-                if !newValue && selectedTab == .fast {
-                    selectedTab = .daily
-                }
-            }
-            .onChange(of: showHabitsTab) { oldValue, newValue in
-                // If Habits tab is hidden and it was selected, switch to Daily tab
-                if !newValue && selectedTab == .habits {
-                    selectedTab = .daily
-                }
-            }
-            .onChange(of: showCheckTab) { oldValue, newValue in
-                // If Check tab is hidden and it was selected, switch to Daily tab
-                if !newValue && selectedTab == .check {
-                    selectedTab = .daily
-                }
-            }
-            .onChange(of: showDiceTab) { oldValue, newValue in
-                // If Dice tab is hidden and it was selected, switch to Daily tab
-                if !newValue && selectedTab == .dice {
-                    selectedTab = .daily
-                }
+                                        if dragProgress < 0.5 || velocity < -50 {
+                                            withAnimation(.spring(response: 0.25, dampingFraction: 0.85)) {
+                                                isMenuShowing = false
+                                                dragProgress = 0
+                                            }
+                                        } else {
+                                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                                dragProgress = 1
+                                            }
+                                        }
+                                    }
+                                }
+                        )
             }
         } else {
             // Fallback on earlier versions

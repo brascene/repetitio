@@ -20,6 +20,7 @@ struct PlayerView: View {
     @Binding var startTime: String
     @Binding var endTime: String
     @Binding var repeatCount: String
+    @Binding var isMenuShowing: Bool
 
     @State private var currentVideoId: String = ""
     @State private var showAlert: Bool = false
@@ -91,6 +92,8 @@ struct PlayerView: View {
     
     private var headerView: some View {
         HStack {
+            MenuButton(isMenuShowing: $isMenuShowing)
+
             Image(systemName: "repeat.circle.fill")
                 .font(.system(size: 32))
                 .foregroundStyle(
@@ -318,6 +321,8 @@ struct PlayerView: View {
         youtubeURL: .constant(""),
         startTime: .constant(""),
         endTime: .constant(""),
-        repeatCount: .constant("0")
+        repeatCount: .constant("0"),
+        isMenuShowing: .constant(false)
     )
+    .environmentObject(ThemeManager())
 }

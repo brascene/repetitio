@@ -8,24 +8,28 @@
 import SwiftUI
 
 struct CalendarHeaderView: View {
+    @Binding var isMenuShowing: Bool
+    @EnvironmentObject var themeManager: ThemeManager
     let onAdd: () -> Void
     let onDeleteAll: () -> Void
-    
+
     var body: some View {
         VStack(spacing: 16) {
             HStack {
+                MenuButton(isMenuShowing: $isMenuShowing)
+
                 HStack(spacing: 12) {
                     ZStack {
                         Circle()
-                            .fill(LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .fill(LinearGradient(colors: themeManager.backgroundColors, startPoint: .topLeading, endPoint: .bottomTrailing))
                             .frame(width: 44, height: 44)
-                            .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
-                        
+                            .shadow(color: themeManager.backgroundColors.first?.opacity(0.3) ?? .clear, radius: 8, x: 0, y: 4)
+
                         Image(systemName: "calendar")
                             .font(.system(size: 20, weight: .semibold))
                             .foregroundColor(.white)
                     }
-                    
+
                     Text("Calendar")
                         .font(.system(size: 34, weight: .bold, design: .rounded))
                         .foregroundStyle(
@@ -36,7 +40,7 @@ struct CalendarHeaderView: View {
                             )
                         )
                 }
-                
+
                 Spacer()
                 
                 HStack(spacing: 8) {

@@ -13,43 +13,31 @@ enum HealthTab: String, CaseIterable {
 }
 
 struct HealthView: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    @Binding var isMenuShowing: Bool
     @State private var selectedTab: HealthTab = .fast
-    
+
     var body: some View {
         ZStack {
-            // Background is handled by child views usually, but FastView puts it inside ZStack.
-            // ExerciseView doesn't have a background wrapper yet.
-            // Let's put the background here to be consistent.
             LiquidBackgroundView()
-            
+                .environmentObject(themeManager)
+
             VStack(spacing: 0) {
-                // Header (We might want a common header or keep FastView's header)
-                // FastView has its own header. ExerciseView doesn't.
-                // Let's hide FastView's header if we are wrapping it, OR let HealthView handle the main header
-                // and push content down.
-                // FastView implementation includes LiquidBackground and ScrollView.
-                // If I embed FastView, it will double the background.
-                // I should probably modify FastView to optionally hide its background/header, or just simple overlay.
-                
-                // Better approach: HealthView manages the top segmented control and switches the whole view content.
-                // But FastView is complex.
-                
-                // Let's try to overlay the segmented control on top of FastView's header? No, that's messy.
-                // Let's create a custom header for HealthView that includes the segmented control.
-                
                 // Header
                 HStack {
+                    MenuButton(isMenuShowing: $isMenuShowing)
+
                     Image(systemName: selectedTab == .fast ? "moon.stars.fill" : "figure.run")
                         .font(.system(size: 32))
                         .foregroundStyle(
                             LinearGradient(
-                                colors: selectedTab == .fast ? [.purple, .blue] : [.green, .mint],
+                                colors: themeManager.backgroundColors,
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
                         )
                         .animation(.spring(), value: selectedTab)
-                    
+
                     Text("Health")
                         .font(.system(size: 32, weight: .bold, design: .rounded))
                         .foregroundStyle(
@@ -59,7 +47,7 @@ struct HealthView: View {
                                 endPoint: .bottom
                             )
                         )
-                    
+
                     Spacer()
                 }
                 .padding(.horizontal, 20)
@@ -85,7 +73,7 @@ struct HealthView: View {
                                             RoundedRectangle(cornerRadius: 12)
                                                 .fill(
                                                     LinearGradient(
-                                                        colors: selectedTab == .fast ? [.purple, .blue] : [.green, .mint],
+                                                        colors: themeManager.backgroundColors,
                                                         startPoint: .topLeading,
                                                         endPoint: .bottomTrailing
                                                     )

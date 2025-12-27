@@ -8,24 +8,27 @@
 import SwiftUI
 
 struct HabitHeaderView: View {
+    @Binding var isMenuShowing: Bool
     let onAdd: () -> Void
     @ObservedObject var manager: HabitManager
-    
+
     var body: some View {
         VStack(spacing: 16) {
             HStack {
+                MenuButton(isMenuShowing: $isMenuShowing)
+
                 HStack(spacing: 12) {
                     ZStack {
                         Circle()
                             .fill(LinearGradient(colors: [.pink, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
                             .frame(width: 44, height: 44)
                             .shadow(color: .pink.opacity(0.3), radius: 8, x: 0, y: 4)
-                        
+
                         Image(systemName: "heart.fill")
                             .font(.system(size: 20, weight: .semibold))
                             .foregroundColor(.white)
                     }
-                    
+
                     Text("Habits")
                         .font(.system(size: 34, weight: .bold, design: .rounded))
                         .foregroundStyle(
@@ -36,7 +39,7 @@ struct HabitHeaderView: View {
                             )
                         )
                 }
-                
+
                 Spacer()
                 
                 Button(action: onAdd) {

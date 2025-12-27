@@ -35,25 +35,25 @@ struct LiquidBackgroundView: View {
             )
             .ignoresSafeArea()
             
-            // Orb 1
+            // Orb 1 - derived from theme start color
             Circle()
-                .fill(Color.blue.opacity(0.4))
+                .fill((themeManager.backgroundColors.first ?? .blue).opacity(0.4))
                 .frame(width: 300, height: 300)
                 .blur(radius: 60)
                 .offset(x: animate ? -100 : 100, y: animate ? -50 : 50)
                 .animation(.easeInOut(duration: 10).repeatForever(autoreverses: true), value: animate)
-            
-            // Orb 2
+
+            // Orb 2 - derived from theme end color
             Circle()
-                .fill(Color.purple.opacity(0.4))
+                .fill((themeManager.backgroundColors.last ?? .purple).opacity(0.4))
                 .frame(width: 350, height: 350)
                 .blur(radius: 60)
                 .offset(x: animate ? 100 : -100, y: animate ? 100 : -100)
                 .animation(.easeInOut(duration: 14).repeatForever(autoreverses: true), value: animate)
-            
-            // Orb 3
+
+            // Orb 3 - middle color from theme
             Circle()
-                .fill(Color.indigo.opacity(0.4))
+                .fill((themeManager.backgroundColors.count > 1 ? themeManager.backgroundColors[min(1, themeManager.backgroundColors.count - 1)] : themeManager.backgroundColors.first ?? .indigo).opacity(0.4))
                 .frame(width: 250, height: 250)
                 .blur(radius: 50)
                 .offset(x: animate ? 50 : -150, y: animate ? -150 : 100)

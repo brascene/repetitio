@@ -16,6 +16,7 @@ struct SettingsView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var authenticationManager: AuthenticationManager
     @EnvironmentObject var firebaseSyncManager: FirebaseSyncManager
+    @Binding var isMenuShowing: Bool
     #if DEBUG
     @EnvironmentObject var appBlockingManager: AppBlockingManager
     @State private var showAppPicker = false
@@ -26,7 +27,12 @@ struct SettingsView: View {
     @AppStorage("showHabitsTab") private var showHabitsTab = true
     @AppStorage("showCheckTab") private var showCheckTab = true
     @AppStorage("showDiceTab") private var showDiceTab = true
+    @AppStorage("showXOTab") private var showXOTab = false
     @AppStorage("use3DDice") private var use3DDice = false
+
+    // MARK: - Feature Flags
+    // Set to true to re-enable tab visibility settings
+    private let showTabVisibilitySettings = false
 
     // Expandable sections state
     @State private var appearanceExpanded = false
@@ -423,8 +429,9 @@ struct SettingsView: View {
                         .padding(.horizontal, 20)
                         .padding(.top, 20)
 
-                        // Tab Visibility Section
-                        GlassmorphicCard {
+                        // Tab Visibility Section (Hidden - set showTabVisibilitySettings = true to re-enable)
+                        if showTabVisibilitySettings {
+                            GlassmorphicCard {
                             VStack(alignment: .leading, spacing: 20) {
                                 // Tappable Header
                                 Button(action: {
@@ -622,10 +629,38 @@ struct SettingsView: View {
                                             .tint(.orange)
                                     }
                                 }
+
+                                Divider()
+                                    .background(Color.white.opacity(0.2))
+
+                                // XO Tab Toggle
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "xmark")
+                                                .font(.system(size: 18))
+                                                .foregroundColor(.purple)
+                                            Text("XO Game")
+                                                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                                                .foregroundColor(.white)
+                                        }
+
+                                        Text("Show or hide the XO (Tic Tac Toe) game tab")
+                                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                                            .foregroundColor(.white.opacity(0.7))
+                                    }
+
+                                    Spacer()
+
+                                    Toggle("", isOn: $showXOTab)
+                                        .labelsHidden()
+                                        .tint(.purple)
+                                }
                                 }
                             }
                         }
                         .padding(.horizontal, 20)
+                        }
 
                         #if DEBUG
                         // App Blocking Section (Development Only)
@@ -804,6 +839,8 @@ struct SettingsView: View {
     
     private var headerView: some View {
         HStack {
+            MenuButton(isMenuShowing: $isMenuShowing)
+
             Image(systemName: "gearshape.fill")
             .font(.system(size: 32))
             .foregroundStyle(
@@ -813,7 +850,7 @@ struct SettingsView: View {
                     endPoint: .bottomTrailing
                 )
             )
-            
+
             Text("Settings")
                 .font(.system(size: 32, weight: .bold, design: .rounded))
                 .foregroundStyle(
@@ -823,7 +860,7 @@ struct SettingsView: View {
                         endPoint: .bottom
                     )
                 )
-            
+
             Spacer()
         }
         .padding(.horizontal, 20)
@@ -833,7 +870,7 @@ struct SettingsView: View {
 }
 
 #Preview {
-    SettingsView()
+    SettingsView(isMenuShowing: .constant(false))
         .environmentObject(ThemeManager())
         .environmentObject(AuthenticationManager())
         .environmentObject(FirebaseSyncManager(context: PersistenceController.shared.container.viewContext))

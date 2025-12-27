@@ -9,6 +9,7 @@ import SwiftUI
 
 struct FastView: View {
     var embedded: Bool = false
+    @EnvironmentObject var themeManager: ThemeManager
     @StateObject private var manager = FastManager()
     @State private var showingStartFast = false
     @State private var showingDeleteConfirmation = false
@@ -287,19 +288,19 @@ struct FastView: View {
                     Circle()
                         .fill(
                             LinearGradient(
-                                colors: [.purple.opacity(0.3), .blue.opacity(0.2)],
+                                colors: themeManager.backgroundColors.map { $0.opacity(0.3) },
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
                         )
                         .frame(width: 120, height: 120)
                         .blur(radius: 20)
-                    
+
                     Image(systemName: "moon.stars.fill")
                         .font(.system(size: 60))
                         .foregroundStyle(
                             LinearGradient(
-                                colors: [.purple, .blue],
+                                colors: themeManager.backgroundColors,
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
@@ -324,18 +325,34 @@ struct FastView: View {
             Button {
                 showingStartFast = true
             } label: {
-                HStack(spacing: 12) {
-                    Image(systemName: "play.fill")
-                        .font(.system(size: 20))
-                    Text("Begin Fast")
-                        .fontWeight(.bold)
+                ZStack {
+                    // Base theme gradient
+                    LinearGradient(
+                        colors: themeManager.backgroundColors,
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+
+                    // White overlay to brighten
+                    LinearGradient(
+                        colors: [.white.opacity(0.3), .white.opacity(0.2)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+
+                    // Button content
+                    HStack(spacing: 12) {
+                        Image(systemName: "play.fill")
+                            .font(.system(size: 20))
+                        Text("Begin Fast")
+                            .fontWeight(.bold)
+                    }
+                    .foregroundColor(.white)
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(Color.purple)
-                .foregroundColor(.white)
+                .frame(height: 56)
                 .cornerRadius(20)
-                .shadow(color: .purple.opacity(0.4), radius: 10, x: 0, y: 5)
+                .shadow(color: themeManager.backgroundColors.first?.opacity(0.5) ?? .clear, radius: 15, x: 0, y: 8)
             }
             .padding(.horizontal, 40)
         }
@@ -402,7 +419,7 @@ struct FastView: View {
                                     get: { Double(customHours) },
                                     set: { customHours = Int($0) }
                                 ), in: 1...168, step: 1)
-                                .tint(.purple)
+                                .tint(themeManager.backgroundColors.first ?? .purple)
                                 
                                 Button {
                                     manager.startFast(type: .custom, customHours: customHours)
@@ -443,4 +460,5 @@ struct FastView: View {
 
 #Preview {
     FastView()
+        .environmentObject(ThemeManager())
 }

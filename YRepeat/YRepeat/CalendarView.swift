@@ -14,6 +14,8 @@ enum EventFilter: String, CaseIterable {
 
 struct CalendarView: View {
     @EnvironmentObject var manager: CalendarManager
+    @EnvironmentObject var themeManager: ThemeManager
+    @Binding var isMenuShowing: Bool
     @State private var showingAddEvent = false
     @State private var selectedDate = Date()
     @State private var selectedEvent: CalendarEvent?
@@ -34,6 +36,7 @@ struct CalendarView: View {
             VStack(spacing: 0) {
                 // Header
                 CalendarHeaderView(
+                    isMenuShowing: $isMenuShowing,
                     onAdd: { showingAddEvent = true },
                     onDeleteAll: { showingDeleteAllConfirmation = true }
                 )
@@ -181,19 +184,19 @@ struct CalendarView: View {
                     Circle()
                         .fill(
                             LinearGradient(
-                                colors: [.blue.opacity(0.3), .purple.opacity(0.2)],
+                                colors: themeManager.backgroundColors.map { $0.opacity(0.3) },
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
                         )
                         .frame(width: 120, height: 120)
                         .blur(radius: 20)
-                    
+
                     Image(systemName: selectedFilter == .upcoming ? "calendar.badge.plus" : "clock.arrow.circlepath")
                         .font(.system(size: 60))
                         .foregroundStyle(
                             LinearGradient(
-                                colors: [.blue, .purple],
+                                colors: themeManager.backgroundColors,
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
@@ -201,13 +204,13 @@ struct CalendarView: View {
                         .scaleEffect(animateContent ? 1.05 : 0.95)
                         .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: animateContent)
                 }
-                
+
                 VStack(spacing: 12) {
                     Text(selectedFilter == .upcoming ? "No Upcoming Events" : "No Past Events")
                         .font(.system(size: 24, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
-                    
-                    Text(selectedFilter == .upcoming 
+
+                    Text(selectedFilter == .upcoming
                          ? "Plan ahead by adding new events and tasks to your calendar."
                          : "Your completed events history will appear here.")
                         .font(.system(size: 16, weight: .medium, design: .rounded))
@@ -216,23 +219,39 @@ struct CalendarView: View {
                         .padding(.horizontal, 40)
                 }
             }
-            
+
             if selectedFilter == .upcoming {
                 Button {
                     showingAddEvent = true
                 } label: {
-                    HStack(spacing: 12) {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.system(size: 22))
-                        Text("Add First Event")
-                            .fontWeight(.bold)
+                    ZStack {
+                        // Base theme gradient
+                        LinearGradient(
+                            colors: themeManager.backgroundColors,
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+
+                        // White overlay to brighten
+                        LinearGradient(
+                            colors: [.white.opacity(0.3), .white.opacity(0.2)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+
+                        // Button content
+                        HStack(spacing: 12) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 22))
+                            Text("Add First Event")
+                                .fontWeight(.bold)
+                        }
+                        .foregroundColor(.white)
                     }
-                    .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(Color.blue)
+                    .frame(height: 56)
                     .cornerRadius(20)
-                    .shadow(color: .blue.opacity(0.4), radius: 10, x: 0, y: 5)
+                    .shadow(color: themeManager.backgroundColors.first?.opacity(0.5) ?? .clear, radius: 15, x: 0, y: 8)
                 }
                 .padding(.horizontal, 40)
             }
@@ -243,6 +262,7 @@ struct CalendarView: View {
 // MARK: - Previews
 
 #Preview {
-    CalendarView()
+    CalendarView(isMenuShowing: .constant(false))
         .environmentObject(CalendarManager())
+        .environmentObject(ThemeManager())
 }

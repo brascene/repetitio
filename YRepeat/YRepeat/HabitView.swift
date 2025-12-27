@@ -9,6 +9,8 @@ import SwiftUI
 
 struct HabitView: View {
     @EnvironmentObject var manager: HabitManager
+    @EnvironmentObject var themeManager: ThemeManager
+    @Binding var isMenuShowing: Bool
     @State private var showingAddHabit = false
     @State private var selectedHabit: Habit?
     @State private var editingHabit: Habit?
@@ -27,7 +29,7 @@ struct HabitView: View {
             
             VStack(spacing: 0) {
                 // Header
-                HabitHeaderView(onAdd: { showingAddHabit = true }, manager: manager)
+                HabitHeaderView(isMenuShowing: $isMenuShowing, onAdd: { showingAddHabit = true }, manager: manager)
                     .zIndex(1)
                 
                 ScrollView(showsIndicators: false) {
@@ -196,19 +198,19 @@ struct HabitView: View {
                     Circle()
                         .fill(
                             LinearGradient(
-                                colors: [.pink.opacity(0.3), .purple.opacity(0.2)],
+                                colors: themeManager.backgroundColors.map { $0.opacity(0.3) },
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
                         )
                         .frame(width: 120, height: 120)
                         .blur(radius: 20)
-                    
+
                     Image(systemName: "heart.fill")
                         .font(.system(size: 60))
                         .foregroundStyle(
                             LinearGradient(
-                                colors: [.pink, .purple],
+                                colors: themeManager.backgroundColors,
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
@@ -216,19 +218,19 @@ struct HabitView: View {
                         .scaleEffect(animateContent ? 1.05 : 0.95)
                         .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: animateContent)
                 }
-                
+
                 VStack(spacing: 12) {
                     Text("Start Your Journey")
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
-                    
+
                     Text("Whether you want to build good habits or break bad ones, every step counts.")
                         .font(.system(size: 16, weight: .medium, design: .rounded))
                         .foregroundColor(.white.opacity(0.8))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 40)
                 }
-                
+
                 VStack(alignment: .leading, spacing: 16) {
                     tipRow(icon: "arrow.up.circle.fill", text: "Start small - one habit at a time", color: .green)
                     tipRow(icon: "arrow.down.circle.fill", text: "Track progress - every day matters", color: .red)
@@ -242,22 +244,38 @@ struct HabitView: View {
                 )
                 .padding(.horizontal, 32)
             }
-            
+
             Button {
                 showingAddHabit = true
             } label: {
-                HStack(spacing: 12) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 22))
-                    Text("Create Your First Habit")
-                        .fontWeight(.bold)
+                ZStack {
+                    // Base theme gradient
+                    LinearGradient(
+                        colors: themeManager.backgroundColors,
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+
+                    // White overlay to brighten
+                    LinearGradient(
+                        colors: [.white.opacity(0.3), .white.opacity(0.2)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+
+                    // Button content
+                    HStack(spacing: 12) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 22))
+                        Text("Create Your First Habit")
+                            .fontWeight(.bold)
+                    }
+                    .foregroundColor(.white)
                 }
-                .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(Color.pink)
+                .frame(height: 56)
                 .cornerRadius(20)
-                .shadow(color: .pink.opacity(0.4), radius: 10, x: 0, y: 5)
+                .shadow(color: themeManager.backgroundColors.first?.opacity(0.5) ?? .clear, radius: 15, x: 0, y: 8)
             }
             .padding(.horizontal, 40)
         }
@@ -278,7 +296,7 @@ struct HabitView: View {
 }
 
 #Preview {
-    HabitView()
+    HabitView(isMenuShowing: .constant(false))
         .environmentObject(HabitManager())
         .environmentObject(ThemeManager())
 }

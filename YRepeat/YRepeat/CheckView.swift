@@ -9,6 +9,7 @@ import SwiftUI
 
 struct CheckView: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @Binding var isMenuShowing: Bool
     @StateObject private var manager = CheckBoxManager()
 
     @State private var showDeleteAlert = false
@@ -17,13 +18,9 @@ struct CheckView: View {
 
     var body: some View {
         ZStack {
-            // Theme-aware background
-            LinearGradient(
-                colors: themeManager.backgroundColors,
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+            // Liquid background effect
+            LiquidBackgroundView()
+                .environmentObject(themeManager)
 
             VStack(spacing: 0) {
                 // Header
@@ -64,41 +61,44 @@ struct CheckView: View {
     private var headerView: some View {
         VStack(spacing: 16) {
             HStack {
+                MenuButton(isMenuShowing: $isMenuShowing)
+
                 HStack(spacing: 12) {
                     ZStack {
                         Circle()
-                            .fill(LinearGradient(colors: [.purple, .blue], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .fill(LinearGradient(colors: themeManager.backgroundColors, startPoint: .topLeading, endPoint: .bottomTrailing))
                             .frame(width: 44, height: 44)
-                            .shadow(color: .purple.opacity(0.3), radius: 8, x: 0, y: 4)
+                            .shadow(color: themeManager.backgroundColors.first?.opacity(0.3) ?? .clear, radius: 8, x: 0, y: 4)
 
                         Image(systemName: "checkmark.square.fill")
                             .font(.system(size: 20, weight: .semibold))
                             .foregroundColor(.white)
                     }
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Check")
-                            .font(.system(size: 34, weight: .bold, design: .rounded))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [.white, .white.opacity(0.9)],
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
+                    Text("Check")
+                        .font(.system(size: 34, weight: .bold, design: .rounded))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [.white, .white.opacity(0.9)],
+                                startPoint: .top,
+                                endPoint: .bottom
                             )
-
-                        if manager.hasStarted {
-                            Text("\(manager.checkedBoxes)/\(manager.totalBoxes) checked")
-                                .font(.system(size: 14))
-                                .foregroundColor(.white.opacity(0.6))
-                        }
-                    }
+                        )
                 }
 
                 Spacer()
             }
             .padding(.horizontal, 20)
-            .padding(.top, 60)
+            .padding(.top, 10)
+
+            // Progress text
+            if manager.hasStarted {
+                Text("\(manager.checkedBoxes)/\(manager.totalBoxes) checked")
+                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                    .foregroundColor(.white.opacity(0.7))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 20)
+            }
         }
     }
 
@@ -112,7 +112,7 @@ struct CheckView: View {
                         .font(.system(size: 20))
                         .foregroundStyle(
                             LinearGradient(
-                                colors: [.purple, .blue],
+                                colors: themeManager.backgroundColors,
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
@@ -139,7 +139,7 @@ struct CheckView: View {
                         RoundedRectangle(cornerRadius: 8)
                             .fill(
                                 LinearGradient(
-                                    colors: [.purple, .blue],
+                                    colors: themeManager.backgroundColors,
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
@@ -199,7 +199,7 @@ struct CheckView: View {
                     .fill(
                         box.isChecked
                             ? LinearGradient(
-                                colors: [.purple, .blue],
+                                colors: themeManager.backgroundColors,
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                               )
@@ -242,7 +242,7 @@ struct CheckView: View {
                         .font(.system(size: 80))
                         .foregroundStyle(
                             LinearGradient(
-                                colors: [.purple, .blue],
+                                colors: themeManager.backgroundColors,
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
@@ -283,7 +283,7 @@ struct CheckView: View {
                                         .background(
                                             selectedSections == num
                                                 ? LinearGradient(
-                                                    colors: [.purple, .blue],
+                                                    colors: themeManager.backgroundColors,
                                                     startPoint: .topLeading,
                                                     endPoint: .bottomTrailing
                                                   )
@@ -326,23 +326,33 @@ struct CheckView: View {
                             manager.startWithConfiguration(sections: selectedSections, boxes: selectedBoxes)
                         }
                     }) {
-                        HStack {
-                            Image(systemName: "play.fill")
-                            Text("Start Checking")
-                                .font(.system(size: 18, weight: .bold))
-                        }
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 56)
-                        .background(
+                        ZStack {
+                            // Base theme gradient
                             LinearGradient(
-                                colors: [.purple, .blue],
+                                colors: themeManager.backgroundColors,
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
-                        )
+
+                            // White overlay to brighten
+                            LinearGradient(
+                                colors: [.white.opacity(0.3), .white.opacity(0.2)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+
+                            // Button content
+                            HStack {
+                                Image(systemName: "play.fill")
+                                Text("Start Checking")
+                                    .font(.system(size: 18, weight: .bold))
+                            }
+                            .foregroundColor(.white)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 56)
                         .cornerRadius(16)
-                        .shadow(color: Color.purple.opacity(0.5), radius: 20, x: 0, y: 10)
+                        .shadow(color: themeManager.backgroundColors.first?.opacity(0.5) ?? .clear, radius: 20, x: 0, y: 10)
                     }
                     .buttonStyle(ScaleButtonStyle())
                     .padding(.horizontal, 20)
@@ -406,6 +416,6 @@ extension Array {
 }
 
 #Preview {
-    CheckView()
+    CheckView(isMenuShowing: .constant(false))
         .environmentObject(ThemeManager())
 }

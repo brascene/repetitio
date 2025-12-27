@@ -14,6 +14,8 @@ enum DailySegment: String, CaseIterable {
 
 struct DailyRepeatView: View {
     @EnvironmentObject var manager: DailyRepeatManager
+    @EnvironmentObject var themeManager: ThemeManager
+    @Binding var isMenuShowing: Bool
     @State private var showingAddItem = false
     @State private var showingTemplates = false
     @State private var selectedItem: DailyRepeatItem?
@@ -134,6 +136,8 @@ struct DailyRepeatView: View {
     private var headerView: some View {
         VStack(spacing: 16) {
             HStack {
+                MenuButton(isMenuShowing: $isMenuShowing)
+
                 Text("Daily Repeat")
                     .font(.system(size: 34, weight: .bold, design: .rounded))
                     .foregroundStyle(
@@ -143,7 +147,7 @@ struct DailyRepeatView: View {
                             endPoint: .bottom
                         )
                     )
-                
+
                 Spacer()
                 
                 if selectedSegment == .daily {
@@ -259,18 +263,18 @@ struct DailyRepeatView: View {
     private var emptyStateView: some View {
         VStack(spacing: 24) {
             Spacer()
-            
+
             VStack(spacing: 16) {
                 Image(systemName: "repeat.circle.badge.plus")
                     .font(.system(size: 70))
                     .foregroundStyle(
                         LinearGradient(
-                            colors: [.blue.opacity(0.6), .purple.opacity(0.6)],
+                            colors: themeManager.backgroundColors.map { $0.opacity(0.6) },
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
-                
+
                 VStack(spacing: 8) {
                     Text("No Daily Goals Yet")
                         .font(.system(size: 24, weight: .bold))
@@ -281,21 +285,41 @@ struct DailyRepeatView: View {
                         .multilineTextAlignment(.center)
                 }
             }
-            
+
             Button {
                 showingAddItem = true
             } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 20))
-                    Text("Create Goal")
-                        .fontWeight(.semibold)
+                ZStack {
+                    // Base theme gradient
+                    LinearGradient(
+                        colors: themeManager.backgroundColors,
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+
+                    // White overlay to brighten
+                    LinearGradient(
+                        colors: [.white.opacity(0.3), .white.opacity(0.2)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+
+                    // Button content
+                    HStack(spacing: 8) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 20))
+                        Text("Create Goal")
+                            .fontWeight(.semibold)
+                    }
+                    .foregroundColor(.white)
                 }
                 .frame(maxWidth: .infinity)
+                .frame(height: 56)
+                .cornerRadius(20)
+                .shadow(color: themeManager.backgroundColors.first?.opacity(0.5) ?? .clear, radius: 15, x: 0, y: 8)
             }
-            .buttonStyle(PremiumButton(color: .blue, isProminent: true))
             .padding(.horizontal, 40)
-            
+
             Spacer()
         }
     }
@@ -303,6 +327,7 @@ struct DailyRepeatView: View {
 }
 
 #Preview {
-    DailyRepeatView()
+    DailyRepeatView(isMenuShowing: .constant(false))
         .environmentObject(DailyRepeatManager())
+        .environmentObject(ThemeManager())
 }
