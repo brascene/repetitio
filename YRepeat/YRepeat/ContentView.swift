@@ -55,17 +55,10 @@ struct ContentView: View {
 
         if #available(iOS 26.0, *) {
             ZStack {
-                // Black background that shows when content is scaled - only show when menu is opening
-                if dragProgress > 0 {
-                    Color.black
-                        .ignoresSafeArea()
-                        .opacity(dragProgress)
-                }
-
-                // Main content with 3D transformations
+                // Main content - stays static
                 ZStack {
-                        // Main TabView with core tabs only
-                        TabView(selection: $selectedTab) {
+                    // Main TabView with core tabs only
+                    TabView(selection: $selectedTab) {
                         DailyRepeatView(isMenuShowing: $isMenuShowing)
                             .environmentObject(dailyRepeatManager)
                             .environmentObject(themeManager)
@@ -135,98 +128,78 @@ struct ContentView: View {
                                 .environmentObject(themeManager)
                         }
                     }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    // 3D Transformation Effects (based on dragProgress)
-                    .scaleEffect(1.0 - (dragProgress * 0.12)) // 1.0 to 0.88
-                    .offset(x: dragProgress * 280)
-                    .rotation3DEffect(
-                        .degrees(-dragProgress * 8),
-                        axis: (x: 0, y: 1, z: 0),
-                        anchor: .leading,
-                        perspective: 0.3
-                    )
-                    .shadow(color: .black.opacity(dragProgress * 0.5), radius: 20, x: -10, y: 0)
-                    .blur(radius: dragProgress * 1)
-                    .brightness(-dragProgress * 0.1)
-                    .allowsHitTesting(!isMenuShowing)
-                    .onChange(of: isMenuShowing) { oldValue, newValue in
-                        // Sync dragProgress with menu state when opened/closed programmatically
-                        if newValue {
-                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                                dragProgress = 1
-                            }
-                        } else {
-                            withAnimation(.spring(response: 0.25, dampingFraction: 0.85)) {
-                                dragProgress = 0
-                            }
-                        }
-                    }
+                }
 
-                    // Left edge swipe detector (transparent area)
-                    if !isMenuShowing {
-                        Rectangle()
-                            .fill(Color.white.opacity(0.001))
-                            .frame(width: 30)
-                            .frame(maxHeight: .infinity)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .gesture(
-                                DragGesture(minimumDistance: 0, coordinateSpace: .global)
-                                    .onChanged { value in
-                                        let translation = max(0, value.translation.width)
-                                        let menuWidth: CGFloat = 280
-                                        dragProgress = min(1, translation / menuWidth)
-                                    }
-                                    .onEnded { value in
-                                        let velocity = value.predictedEndTranslation.width - value.translation.width
-
-                                        if dragProgress > 0.3 || velocity > 200 {
-                                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                                                isMenuShowing = true
-                                                dragProgress = 1
-                                            }
-                                        } else {
-                                            withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
-                                                dragProgress = 0
-                                            }
-                                        }
-                                    }
-                            )
-                            .zIndex(999)
-                    }
-
-                    // Side Menu Overlay
-                    SideMenuView(isShowing: $isMenuShowing, selectedTab: $selectedTab, dragProgress: $dragProgress)
-                        .environmentObject(themeManager)
-                        .zIndex(1000)
-                        .simultaneousGesture(
-                            // Drag to close gesture on menu
+                // Left edge swipe detector (transparent area)
+                if !isMenuShowing {
+                    Rectangle()
+                        .fill(Color.white.opacity(0.001))
+                        .frame(width: 30)
+                        .frame(maxHeight: .infinity)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .gesture(
                             DragGesture(minimumDistance: 0, coordinateSpace: .global)
                                 .onChanged { value in
-                                    if isMenuShowing {
-                                        let translation = value.translation.width
-                                        let menuWidth: CGFloat = 280
-                                        let progress = max(0, min(1, 1 + (translation / menuWidth)))
-                                        dragProgress = progress
-                                    }
+                                    let translation = max(0, value.translation.width)
+                                    let menuWidth: CGFloat = 280
+                                    dragProgress = min(1, translation / menuWidth)
                                 }
                                 .onEnded { value in
-                                    if isMenuShowing {
-                                        let velocity = value.predictedEndTranslation.width - value.translation.width
+                                    let velocity = value.predictedEndTranslation.width - value.translation.width
 
-                                        if dragProgress < 0.5 || velocity < -50 {
-                                            withAnimation(.spring(response: 0.25, dampingFraction: 0.85)) {
-                                                isMenuShowing = false
-                                                dragProgress = 0
-                                            }
-                                        } else {
-                                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                                                dragProgress = 1
-                                            }
+                                    if dragProgress > 0.3 || velocity > 200 {
+                                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                            isMenuShowing = true
+                                            dragProgress = 1
+                                        }
+                                    } else {
+                                        withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
+                                            dragProgress = 0
                                         }
                                     }
                                 }
                         )
+                        .zIndex(999)
+                }
+
+                // Side Menu Overlay - slides over content
+                SideMenuView(isShowing: $isMenuShowing, selectedTab: $selectedTab, dragProgress: $dragProgress)
+                    .environmentObject(themeManager)
+                    .zIndex(1000)
+                    .onChange(of: isMenuShowing) { oldValue, newValue in
+                        // Sync dragProgress with menu state
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                            dragProgress = newValue ? 1 : 0
+                        }
+                    }
+                    .simultaneousGesture(
+                        // Drag to close gesture on menu
+                        DragGesture(minimumDistance: 0, coordinateSpace: .global)
+                            .onChanged { value in
+                                if isMenuShowing {
+                                    let translation = value.translation.width
+                                    let menuWidth: CGFloat = 280
+                                    let progress = max(0, min(1, 1 + (translation / menuWidth)))
+                                    dragProgress = progress
+                                }
+                            }
+                            .onEnded { value in
+                                if isMenuShowing {
+                                    let velocity = value.predictedEndTranslation.width - value.translation.width
+
+                                    if dragProgress < 0.5 || velocity < -50 {
+                                        withAnimation(.spring(response: 0.25, dampingFraction: 0.85)) {
+                                            isMenuShowing = false
+                                            dragProgress = 0
+                                        }
+                                    } else {
+                                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                            dragProgress = 1
+                                        }
+                                    }
+                                }
+                            }
+                    )
             }
         } else {
             // Fallback on earlier versions

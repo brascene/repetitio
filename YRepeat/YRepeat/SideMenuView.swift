@@ -23,7 +23,7 @@ struct SideMenuView: View {
     var body: some View {
         ZStack(alignment: .leading) {
             // Dimmed background with blur - interactive opacity
-            if dragProgress > 0 {
+            if dragProgress > 0.01 {
                 Color.black.opacity(0.4 * dragProgress)
                     .background(.ultraThinMaterial.opacity(0.3 * dragProgress))
                     .ignoresSafeArea()
@@ -33,7 +33,7 @@ struct SideMenuView: View {
             }
 
             // Menu Panel - follows dragProgress
-            if dragProgress > 0 {
+            if dragProgress > 0.01 {
                 menuPanel
                     .offset(x: -280 + (dragProgress * 280)) // Start at -280 (off-screen), slide to 0
                     .opacity(dragProgress)
