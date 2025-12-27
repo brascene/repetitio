@@ -493,15 +493,15 @@ struct SettingsView: View {
                                 HStack {
                                     VStack(alignment: .leading, spacing: 6) {
                                         HStack(spacing: 8) {
-                                            Image(systemName: "moon.stars.fill")
+                                            Image(systemName: "waveform.path.ecg")
                                                 .font(.system(size: 18))
                                                 .foregroundColor(.purple)
-                                            Text("Fast Tab")
+                                            Text("Health Tab")
                                                 .font(.system(size: 18, weight: .semibold, design: .rounded))
                                                 .foregroundColor(.white)
                                         }
 
-                                        Text("Show or hide the Fast tab in the tab bar")
+                                        Text("Show or hide the Health tab in the tab bar")
                                             .font(.system(size: 14, weight: .medium, design: .rounded))
                                             .foregroundColor(.white.opacity(0.7))
                                     }
