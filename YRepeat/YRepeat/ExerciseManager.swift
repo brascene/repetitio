@@ -14,14 +14,48 @@ class ExerciseManager: ObservableObject {
     @Published var ellipticalMinutesThisWeek: Double = 0
     @Published var statusMessage: String = "Initializing..."
     @AppStorage("weeklyEllipticalGoal") var weeklyGoalMinutes: Double = 150
+    @AppStorage("lastTrackedWeek") private var lastTrackedWeek: Int = 0
+    @AppStorage("lastTrackedYear") private var lastTrackedYear: Int = 0
     @Published var isAuthorized = false
+    @Published var isNewWeek = false
 
     private let healthStore = HKHealthStore()
     private let workoutType = HKObjectType.workoutType()
 
+    // Motivational reminder manager
+    let motivationalManager = MotivationalReminderManager()
+
     init() {
         // Check if we need to request authorization, then fetch data
         checkAndRequestAuthorizationIfNeeded()
+
+        // Setup notification observer for app becoming active
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appBecameActive),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
+    @objc private func appBecameActive() {
+        // Auto-refresh when app becomes active if week has changed
+        let calendar = Calendar.current
+        let now = Date()
+        let components = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now)
+
+        if let currentWeek = components.weekOfYear,
+           let currentYear = components.yearForWeekOfYear {
+            if currentWeek != lastTrackedWeek || currentYear != lastTrackedYear {
+                // New week detected - refresh data
+                isNewWeek = true
+                refreshData()
+            }
+        }
     }
 
     private func checkAndRequestAuthorizationIfNeeded() {
@@ -92,23 +126,40 @@ class ExerciseManager: ObservableObject {
 
     func fetchEllipticalMinutes() {
         statusMessage = "Syncing..."
-        
+
         guard HKHealthStore.isHealthDataAvailable() else {
             statusMessage = "HealthKit unavailable on this device."
             return
         }
-        
+
         let workoutType = HKObjectType.workoutType()
         let now = Date()
         let calendar = Calendar.current
-        
-        // Calculate start of week (Sunday or Monday depending on locale)
+
+        // Calculate start of current calendar week
         // Reset time to 00:00:00 to ensure we catch everything from the start of the first day
         let startOfWeekComponents = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now)
         guard let startOfWeek = calendar.date(from: startOfWeekComponents) else { return }
-        
-        // Look back 7 days for debugging if startOfWeek fails, but we rely on startOfWeek for the count
-        
+
+        // Update tracked week/year
+        if let currentWeek = startOfWeekComponents.weekOfYear,
+           let currentYear = startOfWeekComponents.yearForWeekOfYear {
+
+            // Check if this is a new week
+            if lastTrackedWeek == 0 && lastTrackedYear == 0 {
+                // First time running
+                lastTrackedWeek = currentWeek
+                lastTrackedYear = currentYear
+            } else if currentWeek != lastTrackedWeek || currentYear != lastTrackedYear {
+                // New week started!
+                isNewWeek = true
+                lastTrackedWeek = currentWeek
+                lastTrackedYear = currentYear
+            } else {
+                isNewWeek = false
+            }
+        }
+
         // Predicate for last 30 days to ensure we find *something* if permissions are on
         let searchStart = now.addingTimeInterval(-30*24*3600)
         let predicate = HKQuery.predicateForSamples(withStart: searchStart, end: nil, options: .strictStartDate)
@@ -172,25 +223,46 @@ class ExerciseManager: ObservableObject {
                 let totalDuration = ellipticalWorkoutsThisWeek.reduce(0) { $0 + $1.duration }
                 let minutes = totalDuration / 60.0
                 self.ellipticalMinutesThisWeek = minutes
-                
+
+                // Check if user needs motivational reminder
+                self.motivationalManager.checkIfNeedsMotivation(
+                    ellipticalMinutes: minutes,
+                    goalMinutes: self.weeklyGoalMinutes,
+                    startOfWeek: startOfWeek
+                )
+
+                // Update last workout date if we have any workouts
+                if let latestWorkout = ellipticalWorkoutsThisWeek.max(by: { $0.startDate < $1.startDate }) {
+                    self.motivationalManager.updateLastWorkoutDate(latestWorkout.startDate)
+                }
+
+                // Format week date range for display
+                let df = DateFormatter()
+                df.dateFormat = "MMM d"
+                let weekStartStr = df.string(from: startOfWeek)
+
+                // Calculate end of week (6 days after start)
+                let weekEnd = calendar.date(byAdding: .day, value: 6, to: startOfWeek) ?? startOfWeek
+                let weekEndStr = df.string(from: weekEnd)
+
+                let weekRange = "\(weekStartStr) - \(weekEndStr)"
+                let newWeekBadge = self.isNewWeek ? " 🆕" : ""
+
                 if workouts.isEmpty {
-                    self.statusMessage = "No workouts found in last 30 days. Check Permissions > Read > Workouts."
+                    self.statusMessage = "Calendar Week \(weekRange)\(newWeekBadge)\nNo workouts found in last 30 days. Check Permissions > Read > Workouts."
                 } else if ellipticalWorkoutsThisWeek.isEmpty {
                     // Show what we found but why it didn't match
                     let topTypes = typeCounts.sorted { $0.value > $1.value }.prefix(2).map { "\($0.key)(\($0.value))" }.joined(separator: ", ")
 
                     // Show all elliptical-like workouts with dates to help diagnose
                     if !allEllipticalLike.isEmpty {
-                        let df = DateFormatter()
-                        df.dateFormat = "MM/dd"
-                        let weekStart = df.string(from: startOfWeek)
-                        let details = allEllipticalLike.sorted { $0.date > $1.date }.prefix(3).map { w in
+                        let details = allEllipticalLike.sorted { $0.date > $1.date }.prefix(2).map { w in
                             "\(w.type) \(w.mins)m on \(df.string(from: w.date))"
                         }.joined(separator: ", ")
                         let totalMins = allEllipticalLike.reduce(0) { $0 + $1.mins }
-                        self.statusMessage = "Found \(totalMins)m total: \(details). Week starts \(weekStart). No matches this week."
+                        self.statusMessage = "Week \(weekRange)\(newWeekBadge)\nFound \(totalMins)m total: \(details). No matches this week."
                     } else {
-                        self.statusMessage = "Found: \(topTypes). No Elliptical/Other/Mixed workouts."
+                        self.statusMessage = "Week \(weekRange)\(newWeekBadge)\nFound: \(topTypes). No Elliptical/Other/Mixed workouts."
                     }
                 } else {
                     // Show breakdown of what makes up the minutes
@@ -202,7 +274,7 @@ class ExerciseManager: ObservableObject {
                         return "\(type): \(mins)m (\(date))"
                     }.joined(separator: ", ")
 
-                    self.statusMessage = "Synced. \(count) workouts: \(breakdown)"
+                    self.statusMessage = "Week \(weekRange)\(newWeekBadge)\n\(count) workouts: \(breakdown)"
                 }
             }
         }

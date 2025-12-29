@@ -30,7 +30,7 @@
 		</dict>
 	</dict>
 	<key>NSUserNotificationsUsageDescription</key>
-	<string>We need permission to send you medication reminders</string>
+	<string>Stay motivated! We'll send you encouraging reminders to help you reach your weekly exercise goals.</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>We need access to read your exercise data to track your elliptical workouts.</string>
 	<key>NSHealthUpdateUsageDescription</key>
