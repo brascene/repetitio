@@ -222,7 +222,28 @@ struct ExerciseView: View {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                             manager.motivationalManager.dismissMotivation()
                         }
-                        // Could add deep link to Health app or workout app here
+
+                        // Try to open Fitness app first, then Health app, then Settings
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            // Try Fitness app (iOS 16+)
+                            if let fitnessURL = URL(string: "fitness://") {
+                                UIApplication.shared.open(fitnessURL) { success in
+                                    if !success {
+                                        // Fallback to Health app
+                                        if let healthURL = URL(string: "x-apple-health://") {
+                                            UIApplication.shared.open(healthURL) { healthSuccess in
+                                                if !healthSuccess {
+                                                    // Final fallback to Settings > Health
+                                                    if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+                                                        UIApplication.shared.open(settingsURL)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }) {
                         Text("Let's Go! 🔥")
                             .font(.system(size: 18, weight: .bold, design: .rounded))
