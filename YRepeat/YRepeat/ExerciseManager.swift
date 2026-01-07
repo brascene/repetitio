@@ -26,23 +26,27 @@ class ExerciseManager: ObservableObject {
     let motivationalManager = MotivationalReminderManager()
 
     init() {
-        // Check if we need to request authorization, then fetch data
-        checkAndRequestAuthorizationIfNeeded()
-
-        // Setup notification observer for app becoming active
+        // Setup notification observer for app becoming active using block-based API
         NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(appBecameActive),
-            name: UIApplication.didBecomeActiveNotification,
-            object: nil
-        )
+            forName: UIApplication.didBecomeActiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.handleAppBecameActive()
+        }
+
+        // Check if we need to request authorization, then fetch data
+        // Delay slightly to ensure app is fully initialized
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            self?.checkAndRequestAuthorizationIfNeeded()
+        }
     }
 
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
 
-    @objc private func appBecameActive() {
+    private func handleAppBecameActive() {
         // Auto-refresh when app becomes active if week has changed
         let calendar = Calendar.current
         let now = Date()

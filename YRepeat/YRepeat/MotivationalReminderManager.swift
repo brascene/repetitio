@@ -35,7 +35,19 @@ class MotivationalReminderManager: ObservableObject {
     ]
 
     init() {
-        requestNotificationPermissions()
+        // Don't request permissions on init - only when user enables toggle
+        // Check existing authorization status after app is fully initialized
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+            self?.checkNotificationStatus()
+        }
+    }
+
+    private func checkNotificationStatus() {
+        UNUserNotificationCenter.current().getNotificationSettings { [weak self] settings in
+            DispatchQueue.main.async {
+                self?.notificationsEnabled = settings.authorizationStatus == .authorized
+            }
+        }
     }
 
     // MARK: - Notification Permissions
