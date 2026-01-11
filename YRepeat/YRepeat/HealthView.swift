@@ -16,13 +16,15 @@ struct HealthView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @Binding var isMenuShowing: Bool
     @State private var selectedTab: HealthTab = .fast
+    @State private var showInsights = false
 
     var body: some View {
-        ZStack {
-            LiquidBackgroundView()
-                .environmentObject(themeManager)
+        NavigationStack {
+            ZStack {
+                LiquidBackgroundView()
+                    .environmentObject(themeManager)
 
-            VStack(spacing: 0) {
+                VStack(spacing: 0) {
                 // Header
                 HStack {
                     MenuButton(isMenuShowing: $isMenuShowing)
@@ -49,6 +51,23 @@ struct HealthView: View {
                         )
 
                     Spacer()
+
+                    // Insights button - only show on Exercise tab
+                    if selectedTab == .exercise {
+                        Button(action: {
+                            showInsights = true
+                        }) {
+                            Image(systemName: "chart.line.uptrend.xyaxis")
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundColor(.white)
+                                .frame(width: 44, height: 44)
+                                .background(
+                                    Circle()
+                                        .fill(LinearGradient(colors: themeManager.backgroundColors, startPoint: .topLeading, endPoint: .bottomTrailing))
+                                )
+                                .shadow(color: themeManager.backgroundColors.first?.opacity(0.3) ?? .clear, radius: 8, x: 0, y: 4)
+                        }
+                    }
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
@@ -124,10 +143,15 @@ struct HealthView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+            }
+            .navigationDestination(isPresented: $showInsights) {
+                ExerciseHistoryView(isMenuShowing: $isMenuShowing)
+                    .environmentObject(themeManager)
             }
         }
     }
-    
+
     @Namespace private var namespace
 }
 

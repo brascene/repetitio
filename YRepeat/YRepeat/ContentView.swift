@@ -26,11 +26,19 @@ struct ContentView: View {
     @StateObject private var dailyRepeatManager = DailyRepeatManager()
     @StateObject private var calendarManager = CalendarManager()
     @StateObject private var habitManager = HabitManager()
-    @StateObject private var exerciseManager = ExerciseManager()
     @StateObject private var authenticationManager = AuthenticationManager()
     @StateObject private var themeManager = ThemeManager()
 
     @Environment(\.managedObjectContext) private var viewContext
+
+    // Initialize ExerciseManager with context - done in init
+    @StateObject private var exerciseManager: ExerciseManager
+
+    init() {
+        // Initialize ExerciseManager with context
+        let context = PersistenceController.shared.container.viewContext
+        _exerciseManager = StateObject(wrappedValue: ExerciseManager(context: context))
+    }
 
     @State private var youtubeURL: String = ""
     @SceneStorage("selectedTab") private var selectedTab: Tab = .daily

@@ -8,21 +8,10 @@
 import SwiftUI
 internal import CoreData
 import FirebaseCore
-
-// AppDelegate for Firebase initialization
-class AppDelegate: NSObject, UIApplicationDelegate {
-    func application(_ application: UIApplication,
-                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-        FirebaseApp.configure()
-        return true
-    }
-}
+import FirebaseCrashlytics
 
 @main
 struct YRepeatApp: App {
-    // Register AppDelegate for Firebase setup
-    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-
     @StateObject private var dataController = PersistenceController()
     @StateObject private var themeManager = ThemeManager()
     #if DEBUG
@@ -30,6 +19,15 @@ struct YRepeatApp: App {
     #endif
 
     init() {
+        // Configure Firebase
+        FirebaseApp.configure()
+
+        // Enable Crashlytics collection (even in debug builds for testing)
+        #if DEBUG
+        // For testing Crashlytics during development
+        Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(true)
+        #endif
+
         // Migrate data from UserDefaults to Core Data on app launch
         DataMigrationManager.shared.migrateDataIfNeeded()
     }

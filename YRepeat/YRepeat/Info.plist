@@ -32,9 +32,9 @@
 	<key>NSUserNotificationsUsageDescription</key>
 	<string>Stay motivated! We'll send you encouraging reminders to help you reach your weekly exercise goals.</string>
 	<key>NSHealthShareUsageDescription</key>
-	<string>We need access to read your exercise data to track your elliptical workouts.</string>
+	<string>We need access to read your workouts, heart rate, and body weight to track your exercise progress and provide detailed insights.</string>
 	<key>NSHealthUpdateUsageDescription</key>
-	<string>We need permission to save your fasting sessions as Mindful Minutes in Health app.</string>
+	<string>We need permission to save your body weight measurements to Health app.</string>
 	<key>NSFamilyControlsUsageDescription</key>
 	<string>YRepeat uses Family Controls to help you stay focused by blocking distracting apps during your chosen time windows.</string>
 </dict>

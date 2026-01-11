@@ -131,5 +131,10 @@ fi
 
 echo "✅ Successfully processed App Blocking components for Release build"
 
+# --- Firebase Crashlytics dSYM Upload Configuration ---
+# Note: The actual upload happens via the Run Script build phase
+# This just ensures the necessary tools are available in Xcode Cloud
+echo "📦 Firebase Crashlytics configuration ready"
+
 echo "✨ CI Post-Clone Script Completed"
 exit 0

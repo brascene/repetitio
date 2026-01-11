@@ -40,6 +40,7 @@ struct SettingsView: View {
     @State private var accountExpanded = false
     #if DEBUG
     @State private var appBlockingExpanded = false
+    @State private var debugToolsExpanded = false
     #endif
 
     // Confirmation alerts
@@ -789,6 +790,72 @@ struct SettingsView: View {
                                         }
                                     }
                                 }
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 20)
+
+                        // Debug Tools Section (Development Only)
+                        GlassmorphicCard {
+                            VStack(alignment: .leading, spacing: 20) {
+                                // Tappable Header
+                                Button(action: {
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                        debugToolsExpanded.toggle()
+                                    }
+                                }) {
+                                    HStack {
+                                        Image(systemName: "hammer.fill")
+                                            .font(.system(size: 20, weight: .semibold))
+                                            .foregroundStyle(
+                                                LinearGradient(
+                                                    colors: [.yellow, .orange],
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                )
+                                            )
+                                        Text("Debug Tools")
+                                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                                            .foregroundColor(.white)
+                                        Spacer()
+
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundColor(.white.opacity(0.6))
+                                            .rotationEffect(.degrees(debugToolsExpanded ? 90 : 0))
+                                    }
+                                    .contentShape(Rectangle())
+                                }
+                                .buttonStyle(PlainButtonStyle())
+
+                                if debugToolsExpanded {
+                                    Divider()
+                                        .background(Color.white.opacity(0.2))
+
+                                    VStack(spacing: 16) {
+                                        // Crashlytics Test Crash Button
+                                        Button(action: {
+                                            // Test crash for Crashlytics
+                                            let numbers = [0]
+                                            let _ = numbers[1]
+                                        }) {
+                                            HStack {
+                                                Image(systemName: "exclamationmark.triangle.fill")
+                                                    .foregroundColor(.red)
+                                                Text("Test Crashlytics")
+                                                    .font(.system(size: 16, weight: .semibold))
+                                            }
+                                            .foregroundColor(.white)
+                                            .frame(maxWidth: .infinity)
+                                            .padding()
+                                            .background(Color.red.opacity(0.3))
+                                            .cornerRadius(12)
+                                        }
+
+                                        Text("Triggers a test crash to verify Crashlytics is working")
+                                            .font(.system(size: 12))
+                                            .foregroundColor(.white.opacity(0.6))
+                                    }
                                 }
                             }
                         }

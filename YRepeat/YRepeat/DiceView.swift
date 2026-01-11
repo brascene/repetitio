@@ -19,8 +19,8 @@ struct DiceView: View {
     @State private var numberOfDice = 1
     @State private var diceResults: [Int] = [1]
     @State private var rollHistory: [RollResult] = []
-    @State private var showHistory = false
     @State private var bounceOffset: CGFloat = 0
+    @State private var showControls = false
 
     var body: some View {
         ZStack {
@@ -32,23 +32,34 @@ struct DiceView: View {
             )
             .ignoresSafeArea()
 
-            VStack(spacing: 20) {
+            VStack(spacing: 0) {
                 // Header
                 headerView
+                    .padding(.horizontal, 20)
+                    .padding(.top, 10)
+                    .zIndex(10)
 
                 // Dice Count Selector
-                diceCountSelector
+                if showControls {
+                    diceCountSelector
+                        .padding(.horizontal, 20)
+                        .padding(.top, 20)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .zIndex(5)
+                }
 
                 // Dice Display
                 diceDisplayArea
-
-                Spacer()
-
-                // Roll Button
-                rollButton
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        if !showControls {
+                            rollDice()
+                        }
+                    }
+                    // If controls are shown, maybe tapping outside closes them?
+                    // Or just let user tap dice to roll.
+                    // User said "pressing anywhere on the new dice view"
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 20)
             .padding(.bottom, 20)
         }
         .navigationBarHidden(true)
@@ -87,22 +98,22 @@ struct DiceView: View {
 
                 Spacer()
 
-                if !rollHistory.isEmpty {
-                    Button(action: {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            showHistory.toggle()
-                        }
-                    }) {
-                        Image(systemName: showHistory ? "clock.fill" : "clock")
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(width: 40, height: 40)
-                            .background(Circle().fill(Color.white.opacity(0.1)))
+                Button(action: {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        showControls.toggle()
                     }
+                }) {
+                    Image(systemName: showControls ? "chevron.up" : "slider.horizontal.3")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(width: 44, height: 44)
+                        .background(
+                            Circle()
+                                .fill(Color.white.opacity(0.1))
+                                .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 1))
+                        )
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 10)
         }
     }
 
@@ -147,36 +158,44 @@ struct DiceView: View {
     // MARK: - Dice Display Area
 
     private var diceDisplayArea: some View {
-        GlassmorphicCard {
-            VStack(spacing: 20) {
+        VStack(spacing: 0) {
+            Spacer()
+            
+            VStack(spacing: 40) {
                 // Result Summary - only show for multiple dice
                 if numberOfDice > 1 && diceResults.reduce(0, +) > 0 {
                     VStack(spacing: 8) {
                         Text("Total: \(diceResults.reduce(0, +))")
-                            .font(.system(size: 42, weight: .bold, design: .rounded))
+                            .font(.system(size: 60, weight: .bold, design: .rounded))
                             .foregroundColor(.white)
+                            .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
 
                         Text(diceResults.map { String($0) }.joined(separator: " + "))
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(.white.opacity(0.7))
+                            .font(.system(size: 24, weight: .medium))
+                            .foregroundColor(.white.opacity(0.8))
                     }
                 }
 
                 // Dice Display
                 if numberOfDice == 1 {
                     singleDiceView(number: diceResults[0])
-                        .padding(.vertical, 16)
-                        .padding(.horizontal, 16)
                 } else {
-                    HStack(spacing: 16) {
+                    HStack(spacing: 20) {
                         ForEach(Array(diceResults.enumerated()), id: \.offset) { index, number in
                             multipleDiceView(number: number, index: index)
                         }
                     }
-                    .padding(16)
                 }
             }
-            .frame(maxHeight: .infinity)
+            
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if !showControls {
+                rollDice()
+            }
         }
     }
 
@@ -187,9 +206,9 @@ struct DiceView: View {
             .resizable()
             .interpolation(.none)
             .scaledToFit()
-            .frame(width: 180, height: 180)
+            .frame(width: 250, height: 250)
             .foregroundStyle(.white)
-            .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 10)
+            .shadow(color: .black.opacity(0.3), radius: 30, x: 0, y: 15)
             .rotation3DEffect(
                 .degrees(rotationX),
                 axis: (x: 1, y: 0, z: 0)
@@ -213,9 +232,9 @@ struct DiceView: View {
             .resizable()
             .interpolation(.none)
             .scaledToFit()
-            .frame(width: numberOfDice == 2 ? 120 : 90, height: numberOfDice == 2 ? 120 : 90)
+            .frame(width: numberOfDice == 2 ? 160 : 120, height: numberOfDice == 2 ? 160 : 120)
             .foregroundStyle(.white)
-            .shadow(color: .black.opacity(0.3), radius: 15, x: 0, y: 8)
+            .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 10)
             .rotation3DEffect(
                 .degrees(isRolling ? rotationX + Double(index * 120) : 0),
                 axis: (x: 1, y: 0, z: 0)
@@ -225,143 +244,6 @@ struct DiceView: View {
                 axis: (x: 0, y: 1, z: 0)
             )
             .scaleEffect(scale)
-    }
-
-    // MARK: - Roll Button
-
-    private var rollButton: some View {
-        Button(action: rollDice) {
-            ZStack {
-                // Outer glow ring
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: isRolling ? [.gray.opacity(0.3)] : themeManager.backgroundColors.map { $0.opacity(0.4) },
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 160, height: 160)
-                    .blur(radius: 20)
-
-                // Main button
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: isRolling ? [.gray, .gray.opacity(0.8)] : themeManager.backgroundColors,
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 140, height: 140)
-                    .shadow(color: isRolling ? .black.opacity(0.3) : (themeManager.backgroundColors.first?.opacity(0.6) ?? .clear), radius: 15, x: 0, y: 8)
-                    .overlay(
-                        Circle()
-                            .stroke(Color.white.opacity(0.2), lineWidth: 2)
-                    )
-
-                // Icon and Text
-                VStack(spacing: 8) {
-                    Image(systemName: isRolling ? "arrow.triangle.2.circlepath" : "play.fill")
-                        .font(.system(size: 32, weight: .bold))
-                        .foregroundColor(.white)
-                        .rotationEffect(.degrees(isRolling ? 360 : 0))
-                        .animation(isRolling ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: isRolling)
-
-                    Text(isRolling ? "Rolling" : "ROLL")
-                        .font(.system(size: 18, weight: .black, design: .rounded))
-                        .foregroundColor(.white)
-                }
-            }
-            .frame(height: 140)
-        }
-        .disabled(isRolling)
-        .buttonStyle(ScaleButtonStyle())
-    }
-
-    // MARK: - History Section
-
-    private var historySection: some View {
-        GlassmorphicCard {
-            VStack(alignment: .leading, spacing: 16) {
-                HStack {
-                    Image(systemName: "clock.fill")
-                        .font(.system(size: 18))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: themeManager.backgroundColors,
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-
-                    Text("Recent Rolls")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.white)
-
-                    Spacer()
-
-                    Button(action: {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            rollHistory.removeAll()
-                        }
-                    }) {
-                        Text("Clear")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.red)
-                    }
-                }
-
-                if showHistory {
-                    Divider()
-                        .background(Color.white.opacity(0.2))
-
-                    ScrollView(.vertical, showsIndicators: false) {
-                        VStack(spacing: 8) {
-                            ForEach(rollHistory.reversed()) { result in
-                                HStack {
-                                    HStack(spacing: 4) {
-                                        ForEach(result.values, id: \.self) { value in
-                                            Image(systemName: "die.face.\(value).fill")
-                                                .font(.system(size: 16))
-                                                .foregroundStyle(
-                                                    LinearGradient(
-                                                        colors: themeManager.backgroundColors,
-                                                        startPoint: .topLeading,
-                                                        endPoint: .bottomTrailing
-                                                    )
-                                                )
-                                        }
-                                    }
-
-                                    if result.values.count > 1 {
-                                        Text(result.values.map { String($0) }.joined(separator: " + "))
-                                            .font(.system(size: 14))
-                                            .foregroundColor(.white.opacity(0.6))
-                                    }
-
-                                    Spacer()
-
-                                    Text("\(result.total)")
-                                        .font(.system(size: 18, weight: .bold, design: .rounded))
-                                        .foregroundColor(.white)
-
-                                    Text(timeAgo(from: result.timestamp))
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.white.opacity(0.5))
-                                }
-                                .padding(.vertical, 8)
-                                .padding(.horizontal, 12)
-                                .background(Color.white.opacity(0.05))
-                                .cornerRadius(8)
-                            }
-                        }
-                    }
-                    .frame(maxHeight: 300)
-                }
-            }
-            .padding(20)
-        }
     }
 
     // MARK: - Roll Dice Function

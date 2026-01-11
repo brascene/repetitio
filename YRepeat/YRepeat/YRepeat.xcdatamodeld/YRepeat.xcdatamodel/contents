@@ -69,4 +69,34 @@
         <attribute name="isChecked" optional="NO" attributeType="Boolean" defaultValue="NO" usesScalarValueType="YES"/>
         <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
+    <entity name="WeeklyExerciseRecordEntity" representedClassName="WeeklyExerciseRecordEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="weekStartDate" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="weekEndDate" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="weekNumber" optional="NO" attributeType="Integer 32" defaultValue="0" usesScalarValueType="YES"/>
+        <attribute name="year" optional="NO" attributeType="Integer 32" defaultValue="0" usesScalarValueType="YES"/>
+        <attribute name="totalMinutes" optional="NO" attributeType="Double" defaultValue="0.0" usesScalarValueType="YES"/>
+        <attribute name="ellipticalMinutes" optional="NO" attributeType="Double" defaultValue="0.0" usesScalarValueType="YES"/>
+        <attribute name="boxingMinutes" optional="NO" attributeType="Double" defaultValue="0.0" usesScalarValueType="YES"/>
+        <attribute name="weightliftingMinutes" optional="NO" attributeType="Double" defaultValue="0.0" usesScalarValueType="YES"/>
+        <attribute name="goalMinutes" optional="NO" attributeType="Double" defaultValue="150.0" usesScalarValueType="YES"/>
+        <attribute name="workoutCount" optional="NO" attributeType="Integer 32" defaultValue="0" usesScalarValueType="YES"/>
+        <attribute name="goalAchieved" optional="NO" attributeType="Boolean" defaultValue="NO" usesScalarValueType="YES"/>
+        <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
+    <entity name="WeightliftingSessionEntity" representedClassName="WeightliftingSessionEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="sessionDate" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="durationMinutes" optional="NO" attributeType="Double" defaultValue="0.0" usesScalarValueType="YES"/>
+        <attribute name="bodyPartsWorked" optional="YES" attributeType="String"/>
+        <attribute name="weekNumber" optional="NO" attributeType="Integer 32" defaultValue="0" usesScalarValueType="YES"/>
+        <attribute name="year" optional="NO" attributeType="Integer 32" defaultValue="0" usesScalarValueType="YES"/>
+        <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
+    <entity name="BodyWeightEntity" representedClassName="BodyWeightEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="weight" optional="NO" attributeType="Double" defaultValue="0.0" usesScalarValueType="YES"/>
+        <attribute name="date" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
 </model>
