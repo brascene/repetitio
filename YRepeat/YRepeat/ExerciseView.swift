@@ -182,30 +182,22 @@ struct ExerciseView: View {
                 }
             }
 
-            // Motivational Popup Overlay
-            if manager.motivationalManager.shouldShowMotivationalPopup {
-                motivationalPopupView
-                    .transition(.scale.combined(with: .opacity))
-                    .zIndex(1000)
-            }
+        }
+        .sheet(isPresented: $manager.motivationalManager.shouldShowMotivationalPopup) {
+            motivationalSheet
         }
     }
 
-    // MARK: - Motivational Popup
+    // MARK: - Motivational Sheet
 
-    private var motivationalPopupView: some View {
+    private var motivationalSheet: some View {
         ZStack {
-            // Dimmed background
-            Color.black.opacity(0.6)
-                .ignoresSafeArea()
-                .onTapGesture {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                        manager.motivationalManager.dismissMotivation()
-                    }
-                }
+            // Background
+            LiquidBackgroundView()
 
-            // Popup Card
-            VStack(spacing: 24) {
+            VStack(spacing: 32) {
+                Spacer()
+
                 // Icon
                 ZStack {
                     Circle()
@@ -216,32 +208,32 @@ struct ExerciseView: View {
                                 endPoint: .bottomTrailing
                             )
                         )
-                        .frame(width: 80, height: 80)
+                        .frame(width: 100, height: 100)
                         .shadow(color: .orange.opacity(0.4), radius: 20, x: 0, y: 10)
 
                     Image(systemName: "flame.fill")
-                        .font(.system(size: 40))
+                        .font(.system(size: 50))
                         .foregroundColor(.white)
                 }
 
                 // Message
                 Text(manager.motivationalManager.currentMotivationalMessage)
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal)
+                    .padding(.horizontal, 32)
+
+                Spacer()
 
                 // Action Button
                 Button(action: {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                        manager.motivationalManager.dismissMotivation()
-                    }
+                    manager.motivationalManager.dismissMotivation()
                 }) {
                     Text("Let's Crush It! 💪")
                         .font(.system(size: 18, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
+                        .padding(.vertical, 18)
                         .background(
                             LinearGradient(
                                 colors: [.green, .green.opacity(0.8)],
@@ -251,16 +243,12 @@ struct ExerciseView: View {
                         )
                         .cornerRadius(16)
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 40)
+                .padding(.bottom, 40)
             }
-            .padding(32)
-            .background(
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(Color(white: 0.15))
-                    .shadow(color: .black.opacity(0.3), radius: 30, x: 0, y: 15)
-            )
-            .padding(.horizontal, 40)
         }
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
     }
 
     // MARK: - Weightlifting Section
