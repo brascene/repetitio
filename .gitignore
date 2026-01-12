@@ -32,7 +32,8 @@ fastlane/screenshots/**/*.png
 fastlane/test_output
 
 # Firebase
-GoogleService-Info.plist
+# Note: GoogleService-Info.plist is checked in for Xcode Cloud builds
+# It contains public configuration data, not secrets
 
 # API Keys and Secrets
 *.env
