@@ -194,6 +194,15 @@ struct ExerciseView: View {
     // MARK: - Motivational Sheet
 
     private var motivationalSheet: some View {
+        MotivationalSheetContent(manager: manager)
+    }
+}
+
+struct MotivationalSheetContent: View {
+    @Environment(\.dismiss) private var dismiss
+    @ObservedObject var manager: ExerciseManager
+
+    var body: some View {
         ZStack {
             // Background
             LiquidBackgroundView()
@@ -231,6 +240,7 @@ struct ExerciseView: View {
                 // Action Button
                 Button(action: {
                     manager.motivationalManager.dismissMotivation()
+                    dismiss()
                 }) {
                     Text("Let's Crush It! 💪")
                         .font(.system(size: 18, weight: .bold, design: .rounded))
@@ -253,7 +263,11 @@ struct ExerciseView: View {
         .presentationDetents([.medium])
         .presentationDragIndicator(.visible)
     }
+}
 
+// MARK: - ExerciseView Extensions
+
+extension ExerciseView {
     // MARK: - Weightlifting Section
 
     private var weightliftingSection: some View {
