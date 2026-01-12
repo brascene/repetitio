@@ -183,7 +183,10 @@ struct ExerciseView: View {
             }
 
         }
-        .sheet(isPresented: $manager.motivationalManager.shouldShowMotivationalPopup) {
+        .sheet(isPresented: Binding(
+            get: { manager.motivationalManager.shouldShowMotivationalPopup },
+            set: { manager.motivationalManager.shouldShowMotivationalPopup = $0 }
+        )) {
             motivationalSheet
         }
     }
