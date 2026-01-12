@@ -14,6 +14,7 @@ struct ExerciseView: View {
     @State private var editingSession: WeightliftingSession?
     @State private var showBodyPartsEditor = false
     @State private var showWeightEditor = false
+    @State private var showMotivationalSheet = false
     @State private var weightInput: String = ""
 
     init() {
@@ -183,83 +184,90 @@ struct ExerciseView: View {
             }
 
         }
-        .sheet(isPresented: Binding(
-            get: { manager.motivationalManager.shouldShowMotivationalPopup },
-            set: { manager.motivationalManager.shouldShowMotivationalPopup = $0 }
-        )) {
+        .sheet(isPresented: $showMotivationalSheet) {
             motivationalSheet
+        }
+        .onAppear {
+            showMotivationalSheet = manager.motivationalManager.shouldShowMotivationalPopup
+        }
+        .onChange(of: manager.motivationalManager.shouldShowMotivationalPopup) { oldValue, newValue in
+            showMotivationalSheet = newValue
         }
     }
 
     // MARK: - Motivational Sheet
 
     private var motivationalSheet: some View {
-        MotivationalSheetContent(manager: manager)
+        MotivationalSheetContent(manager: manager, isPresented: $showMotivationalSheet)
+    }
+
+    // MARK: - Helper Functions
+
+    private func parseWeight(_ input: String) -> Double? {
+        let normalized = input.replacingOccurrences(of: ",", with: ".")
+        return Double(normalized)
     }
 }
 
 struct MotivationalSheetContent: View {
-    @Environment(\.dismiss) private var dismiss
     @ObservedObject var manager: ExerciseManager
+    @Binding var isPresented: Bool
 
     var body: some View {
-        ZStack {
-            // Background
-            LiquidBackgroundView()
+        VStack(spacing: 32) {
+            Spacer()
 
-            VStack(spacing: 32) {
-                Spacer()
-
-                // Icon
-                ZStack {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [.orange, .red],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
+            // Icon
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [.orange, .red],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
                         )
-                        .frame(width: 100, height: 100)
-                        .shadow(color: .orange.opacity(0.4), radius: 20, x: 0, y: 10)
+                    )
+                    .frame(width: 100, height: 100)
+                    .shadow(color: .orange.opacity(0.4), radius: 20, x: 0, y: 10)
 
-                    Image(systemName: "flame.fill")
-                        .font(.system(size: 50))
-                        .foregroundColor(.white)
-                }
-
-                // Message
-                Text(manager.motivationalManager.currentMotivationalMessage)
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                Image(systemName: "flame.fill")
+                    .font(.system(size: 50))
                     .foregroundColor(.white)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
-
-                Spacer()
-
-                // Action Button
-                Button(action: {
-                    manager.motivationalManager.dismissMotivation()
-                    dismiss()
-                }) {
-                    Text("Let's Crush It! 💪")
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 18)
-                        .background(
-                            LinearGradient(
-                                colors: [.green, .green.opacity(0.8)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .cornerRadius(16)
-                }
-                .padding(.horizontal, 40)
-                .padding(.bottom, 40)
             }
+
+            // Message
+            Text(manager.motivationalManager.currentMotivationalMessage)
+                .font(.system(size: 28, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+
+            Spacer()
+
+            // Action Button
+            Button {
+                manager.motivationalManager.dismissMotivation()
+                isPresented = false
+            } label: {
+                Text("Let's Crush It! 💪")
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 18)
+                    .background(
+                        LinearGradient(
+                            colors: [.green, .green.opacity(0.8)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(16)
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 40)
+            .padding(.bottom, 40)
         }
+        .background(LiquidBackgroundView())
         .presentationDetents([.medium])
         .presentationDragIndicator(.visible)
     }
@@ -422,7 +430,7 @@ extension ExerciseView {
                     }
 
                     Button(action: {
-                        if let weight = Double(weightInput), weight > 0 {
+                        if let weight = parseWeight(weightInput), weight > 0 {
                             manager.saveWeight(weight)
                             showWeightEditor = false
 
@@ -445,8 +453,8 @@ extension ExerciseView {
                             .cornerRadius(16)
                     }
                     .padding(.horizontal)
-                    .disabled(weightInput.isEmpty || Double(weightInput) == nil || Double(weightInput)! <= 0)
-                    .opacity((weightInput.isEmpty || Double(weightInput) == nil || Double(weightInput)! <= 0) ? 0.5 : 1.0)
+                    .disabled(weightInput.isEmpty || parseWeight(weightInput) == nil || parseWeight(weightInput)! <= 0)
+                    .opacity((weightInput.isEmpty || parseWeight(weightInput) == nil || parseWeight(weightInput)! <= 0) ? 0.5 : 1.0)
 
                     Spacer()
                 }
