@@ -132,8 +132,31 @@ fi
 echo "✅ Successfully processed App Blocking components for Release build"
 
 # --- Firebase Crashlytics dSYM Upload Configuration ---
-# Note: The actual upload happens via the Run Script build phase
-# This just ensures the necessary tools are available in Xcode Cloud
+# Verify GoogleService-Info.plist exists and is readable
+echo "🔧 Verifying Firebase configuration files..."
+
+GOOGLE_PLIST_PATH="$CI_PRIMARY_REPOSITORY_PATH/YRepeat/YRepeat/GoogleService-Info.plist"
+
+if [ -f "$GOOGLE_PLIST_PATH" ]; then
+    echo "   ✅ GoogleService-Info.plist found at: $GOOGLE_PLIST_PATH"
+
+    # Verify it's readable
+    if [ -r "$GOOGLE_PLIST_PATH" ]; then
+        echo "   ✅ File is readable"
+
+        # Check if GOOGLE_APP_ID exists in the file
+        if grep -q "GOOGLE_APP_ID" "$GOOGLE_PLIST_PATH"; then
+            echo "   ✅ GOOGLE_APP_ID found in plist"
+        else
+            echo "   ⚠️  WARNING: GOOGLE_APP_ID not found in plist"
+        fi
+    else
+        echo "   ⚠️  WARNING: File is not readable"
+    fi
+else
+    echo "   ⚠️  WARNING: GoogleService-Info.plist not found at: $GOOGLE_PLIST_PATH"
+fi
+
 echo "📦 Firebase Crashlytics configuration ready"
 
 echo "✨ CI Post-Clone Script Completed"
