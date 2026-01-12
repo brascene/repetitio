@@ -231,59 +231,25 @@ struct ExerciseView: View {
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
 
-                // Action Buttons
-                VStack(spacing: 12) {
-                    Button(action: {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                            manager.motivationalManager.dismissMotivation()
-                        }
-
-                        // Try to open Fitness app first, then Health app, then Settings
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            // Try Fitness app (iOS 16+)
-                            if let fitnessURL = URL(string: "fitness://") {
-                                UIApplication.shared.open(fitnessURL) { success in
-                                    if !success {
-                                        // Fallback to Health app
-                                        if let healthURL = URL(string: "x-apple-health://") {
-                                            UIApplication.shared.open(healthURL) { healthSuccess in
-                                                if !healthSuccess {
-                                                    // Final fallback to Settings > Health
-                                                    if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
-                                                        UIApplication.shared.open(settingsURL)
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }) {
-                        Text("Let's Go! 🔥")
-                            .font(.system(size: 18, weight: .bold, design: .rounded))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
-                            .background(
-                                LinearGradient(
-                                    colors: [.green, .green.opacity(0.8)],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
+                // Action Button
+                Button(action: {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        manager.motivationalManager.dismissMotivation()
+                    }
+                }) {
+                    Text("Let's Crush It! 💪")
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            LinearGradient(
+                                colors: [.green, .green.opacity(0.8)],
+                                startPoint: .leading,
+                                endPoint: .trailing
                             )
-                            .cornerRadius(16)
-                    }
-
-                    Button(action: {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                            manager.motivationalManager.dismissMotivation()
-                        }
-                    }) {
-                        Text("Maybe Later")
-                            .font(.system(size: 16, weight: .medium, design: .rounded))
-                            .foregroundColor(.white.opacity(0.6))
-                    }
+                        )
+                        .cornerRadius(16)
                 }
                 .padding(.horizontal, 20)
             }
